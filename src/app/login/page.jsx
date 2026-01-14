@@ -88,9 +88,7 @@ export default function LoginPage() {
                 />
                 Remember me
               </label>
-              <a href="#" className="text-accent hover:underline font-medium">
-                Forgot Password?
-              </a>
+              
             </div>
 
             <button
@@ -101,16 +99,11 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-gray-600 dark:text-gray-400 mt-6">
-            Don't have an account?{' '}
-            <a href="#" className="text-accent font-medium hover:underline">
-              Sign up
-            </a>
-          </p>
+          
         </div>
 
         <p className="text-center text-gray-300 dark:text-gray-500 text-xs mt-8">
-          © 2024 Happy Schooling. All rights reserved.
+          © 2026 Happy Schooling. All rights reserved.
         </p>
       </div>
     </div>
