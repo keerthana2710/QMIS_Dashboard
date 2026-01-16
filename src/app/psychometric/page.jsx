@@ -142,6 +142,48 @@ export default function PsychometricPage() {
       </div>
 
     </div>
+     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 w-full">
+      {/* Show count */}
+      <div className="flex items-center space-x-2">
+        <label
+          htmlFor="showCount"
+          className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+        >
+          Show:
+        </label>
+        <input
+          id="showCount"
+          type="number"
+          min={1}
+          max={100}
+          defaultValue={10}
+          className="w-16 text-sm text-center
+                     border border-gray-300 dark:border-gray-600
+                     rounded-md bg-white dark:bg-gray-800
+                     text-gray-700 dark:text-gray-200
+                     focus:outline-none focus:ring-2 focus:ring-primary
+                     py-1"
+        />
+      </div>
+    
+      {/* Toolbar */}
+      <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-start lg:justify-end">
+        {["Copy", "Excel", "PDF", "Print", "Columns"].map((item) => (
+          <button
+            key={item}
+            className="flex-1 lg:flex-none px-4 py-2 text-sm font-medium
+                       bg-white dark:bg-gray-800
+                       border border-gray-200 dark:border-gray-600
+                       rounded-lg text-gray-700 dark:text-gray-200
+                       hover:bg-gray-50 dark:hover:bg-gray-700
+                       transition-colors min-w-[80px]"
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </div>
+    
          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -154,7 +196,6 @@ export default function PsychometricPage() {
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200"> Email</th>
                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Whatsapp No</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Stage</th>
-           
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200"> Test Conducted</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Councilor name</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">To Counduct Test</th>
@@ -174,9 +215,6 @@ export default function PsychometricPage() {
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.source}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.subSource}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.fatherName}</td>
-                
-               
-              
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.whatsappNo}</td>
                 <td className="px-6 py-4">
                   <button className="text-accent hover:text-red-700 font-semibold text-sm">View</button>
