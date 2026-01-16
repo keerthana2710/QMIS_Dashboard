@@ -6,11 +6,11 @@ import { Search, Filter, Download, Plus } from 'lucide-react';
 
 export default function LeadsPage() {
   const [leads] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', phone: '+1234567890', source: 'Campaign', status: 'Qualified' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '+1234567891', source: 'Referral', status: 'Interested' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@example.com', phone: '+1234567892', source: 'Campaign', status: 'Qualified' },
-    { id: 4, name: 'Sarah Williams', email: 'sarah@example.com', phone: '+1234567893', source: 'Voucher', status: 'New' },
-    { id: 5, name: 'Tom Brown', email: 'tom@example.com', phone: '+1234567894', source: 'Campaign', status: 'Qualified' },
+    { id: 1, applicationNo: "APP001", createdAt: "2026-01-16", stage: "Pre KG", noOfChildren: 1, campaign: "Campaign A", source: "Campaign", subSource: "Online", fatherName: "John Doe Sr", fatherEmail: "john.sr@example.com", fatherPhone: "+1234567890", motherName: "Jane Doe", motherEmail: "jane.doe@example.com", motherPhone: "+1234567899", payment: "Paid", guardianName: "Uncle Bob", guardianPhone: "+1234567800", guardianRelationship: "Uncle", guardianEmail: "bob@example.com", project: "Project X", addedBy: "Admin", whatsappNo: "+1234567890", status: "Qualified" },
+    { id: 2, applicationNo: "APP002", createdAt: "2026-01-15", stage: "KG 1", noOfChildren: 2, campaign: "Campaign B", source: "Referral", subSource: "Friend", fatherName: "Mark Smith", fatherEmail: "mark@example.com", fatherPhone: "+1234567891", motherName: "Anna Smith", motherEmail: "anna@example.com", motherPhone: "+1234567898", payment: "Pending", guardianName: "Grandpa Joe", guardianPhone: "+1234567801", guardianRelationship: "Grandfather", guardianEmail: "joe@example.com", project: "Project Y", addedBy: "Admin", whatsappNo: "+1234567891", status: "Interested" },
+    { id: 3, applicationNo: "APP003", createdAt: "2026-01-14", stage: "Grade 1", noOfChildren: 1, campaign: "Campaign C", source: "Campaign", subSource: "Online", fatherName: "Mike Johnson", fatherEmail: "mike.j@example.com", fatherPhone: "+1234567892", motherName: "Emily Johnson", motherEmail: "emily.j@example.com", motherPhone: "+1234567897", payment: "Paid", guardianName: "Aunt Mary", guardianPhone: "+1234567802", guardianRelationship: "Aunt", guardianEmail: "mary@example.com", project: "Project Z", addedBy: "Admin", whatsappNo: "+1234567892", status: "Qualified" },
+    { id: 4, applicationNo: "APP004", createdAt: "2026-01-13", stage: "Grade 2", noOfChildren: 3, campaign: "Campaign D", source: "Voucher", subSource: "Offline", fatherName: "Sarah Williams Sr", fatherEmail: "sarah.sr@example.com", fatherPhone: "+1234567893", motherName: "Laura Williams", motherEmail: "laura.w@example.com", motherPhone: "+1234567896", payment: "Pending", guardianName: "Uncle Tim", guardianPhone: "+1234567803", guardianRelationship: "Uncle", guardianEmail: "tim@example.com", project: "Project X", addedBy: "Admin", whatsappNo: "+1234567893", status: "New" },
+    { id: 5, applicationNo: "APP005", createdAt: "2026-01-12", stage: "KG 2", noOfChildren: 2, campaign: "Campaign E", source: "Campaign", subSource: "Online", fatherName: "Tom Brown", fatherEmail: "tom@example.com", fatherPhone: "+1234567894", motherName: "Linda Brown", motherEmail: "linda@example.com", motherPhone: "+1234567895", payment: "Paid", guardianName: "Grandma Sue", guardianPhone: "+1234567804", guardianRelationship: "Grandmother", guardianEmail: "sue@example.com", project: "Project Y", addedBy: "Admin", whatsappNo: "+1234567894", status: "Qualified" },
   ]);
 
   const getStatusColor = (status) => {
@@ -25,71 +25,340 @@ export default function LeadsPage() {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10; // Changeable via “Show” input if needed
+
+  const totalPages = Math.ceil(leads.length / rowsPerPage);
+
+  // Slice leads for current page
+  const currentLeads = leads.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <PageLayout title="Leads Management">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-          <div className="flex-1 w-full md:w-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search leads..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Filter size={18} />
-              <span className="hidden md:inline">Filter</span>
-            </button>
-            <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Download size={18} />
-              <span className="hidden md:inline">Export</span>
-            </button>
-            <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-red-700 transition-colors">
-              <Plus size={18} />
-              <span className="hidden md:inline">Add Lead</span>
-            </button>
-          </div>
+       <div className="w-full bg-white rounded-lg shadow-sm p-4">
+      {/* Title */}
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        Leads by Source
+      </h2>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+        {/* Start Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Start Date
+          </label>
+          <input
+            type="date"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Email</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Phone</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Source</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leads.map((lead) => (
-                  <tr key={lead.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{lead.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.phone}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.source}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(lead.status)}`}>
-                        {lead.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button className="text-accent hover:text-red-700 font-semibold text-sm">Edit</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* End Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            End Date
+          </label>
+          <input
+            type="date"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
         </div>
+
+        {/* Campaign */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Campaign
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>All Campaigns</option>
+            <option>Sanjay</option>
+            <option>QMIS</option>
+          </select>
+        </div>
+
+        {/* Intake Year */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Intake Year
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>Intake Year</option>
+            <option>2026-2027</option>
+          </select>
+        </div>
+
+        {/* Project */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Select Project
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>Project</option>
+            <option>Vijayadhasami 2026</option>
+             <option>2026-2027 Admissions</option>
+          </select>
+        </div>
+
+        {/* Grade */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Select Grade
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>All Grade</option>
+            <option value="Pre KG">Pre KG</option>
+            <option value="KG 1">KG 1</option>
+            <option value="KG 2">KG 2</option>
+            <option value="Grade 1">Grade 1</option>
+            <option value="Grade 2">Grade 2</option>
+            <option value="Grade 3">Grade 3</option>
+            <option value="Grade 4">Grade 4</option>
+            <option value="Grade 5">Grade 5</option>
+            <option value="Grade 6">Grade 6</option>
+            <option value="Grade 7">Grade 7</option>
+            <option value="Grade 8">Grade 8</option>
+            <option value="Grade 9">Grade 9</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+          </select>
+        </div>
+         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+           All Payments
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>All Payments</option>
+            <option>Online Payments</option>
+            <option>Offline Payments</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+           Added By
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>All </option>
+            <option>PRM</option>
+            <option>Gayathri</option>
+            <option>Fathima</option>
+            <option>Akhila</option>
+            <option>Paulin Sharmila </option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+           Stages
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>All </option>
+            <option>Enquiry</option>
+            <option>Application Purchased</option>
+            <option>Interview Scheduled</option>
+            <option>Interview Conducted</option>
+            <option>Admitted</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+          Source
+          </label>
+          <select className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+            <option>All </option>
+            <option>Online Payments</option>
+            <option>Offline Payments</option>
+          </select>
+        </div>
+
+        {/* Total Count */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Total Count
+          </label>
+          <input
+            type="text"
+            disabled
+            className="w-full rounded border border-gray-200 bg-gray-100 px-3 py-2 text-sm"
+          />
+        </div>
+
+        {/* Child Count */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Child Count
+          </label>
+          <input
+            type="text"
+            disabled
+            className="w-full rounded border border-gray-200 bg-gray-100 px-3 py-2 text-sm"
+          />
+        </div>
+      </div>      
+    </div>
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 w-full">
+  {/* Show count */}
+  <div className="flex items-center space-x-2">
+    <label
+      htmlFor="showCount"
+      className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+    >
+      Show:
+    </label>
+    <input
+      id="showCount"
+      type="number"
+      min={1}
+      max={100}
+      defaultValue={10}
+      className="w-16 text-sm text-center
+                 border border-gray-300 dark:border-gray-600
+                 rounded-md bg-white dark:bg-gray-800
+                 text-gray-700 dark:text-gray-200
+                 focus:outline-none focus:ring-2 focus:ring-primary
+                 py-1"
+    />
+  </div>
+
+  {/* Search */}
+  <div className="relative w-full lg:w-auto">
+    <Search
+      className="absolute left-3 top-3 text-gray-400"
+      size={20}
+    />
+    <input
+      type="text"
+      placeholder="Search leads..."
+      className="w-full pl-10 pr-4 py-2 rounded-lg
+                 border border-gray-200 dark:border-gray-600
+                 dark:bg-gray-700 dark:text-white
+                 focus:outline-none focus:ring-2 focus:ring-primary"
+    />
+  </div>
+
+  {/* Toolbar */}
+  <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-start lg:justify-end">
+    {["Copy", "Excel", "PDF", "Print", "Columns"].map((item) => (
+      <button
+        key={item}
+        className="flex-1 lg:flex-none px-4 py-2 text-sm font-medium
+                   bg-white dark:bg-gray-800
+                   border border-gray-200 dark:border-gray-600
+                   rounded-lg text-gray-700 dark:text-gray-200
+                   hover:bg-gray-50 dark:hover:bg-gray-700
+                   transition-colors min-w-[80px]"
+      >
+        {item}
+      </button>
+    ))}
+  </div>
+</div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <tr>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Sno</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Application No</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Created At</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Stage</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">No of Children</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Campaign</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Source</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Sub Source</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Father Name</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Father Email</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Father Phone</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Mother Name</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Mother Email</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Mother Phone</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Payment</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Name</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Phone</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Relationship</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Email</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Project</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Added by</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Whatsapp No</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {currentLeads.map((lead, idx) => (
+              <tr key={lead.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{(currentPage-1)*rowsPerPage + idx + 1}</td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{lead.applicationNo}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.createdAt}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.stage}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.noOfChildren}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.campaign}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.source}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.subSource}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.fatherName}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.fatherEmail}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.fatherPhone}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.motherName}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.motherEmail}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.motherPhone}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.payment}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianName}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianPhone}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianRelationship}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianEmail}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.project}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.addedBy}</td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.whatsappNo}</td>
+                <td className="px-6 py-4">
+                  <button className="text-accent hover:text-red-700 font-semibold text-sm">Edit</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={handlePrev}
+          disabled={currentPage === 1}
+          className={`px-4 py-2 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition ${
+            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-600 dark:text-gray-300">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={handleNext}
+          disabled={currentPage === totalPages}
+          className={`px-4 py-2 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition ${
+            currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          Next
+        </button>
+      </div>
+    </div>
       </div>
     </PageLayout>
   );
