@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,11 +11,34 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email && password) {
-      localStorage.setItem('authToken', 'demo_token');
-      router.push('/dashboard');
+
+    try {
+      const res = await fetch(
+        '/api/auth/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || 'Login failed');
+        return;
+      }
+
+      sessionStorage.setItem('otpUserId', data.userId);
+
+      router.push('/otpverify');
+    } catch (error) {
+      console.error(error);
+      toast.error('something went wrong')
     }
   };
 

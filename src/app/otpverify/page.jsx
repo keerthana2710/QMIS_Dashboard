@@ -1,20 +1,55 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function VerifyOtpPage() {
+  const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
-    if (email && password) {
-      localStorage.setItem('authToken', 'demo_token');
+
+    if (otp.length !== 6) {
+      toast.error('OTP must be 6 digits');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          otp,
+          userId: sessionStorage.getItem('otpUserId'),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || 'Invalid OTP');
+        return;
+      }
+
+      localStorage.setItem('authToken', data.token);
+
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      toast.success('Login successful');
+
+      sessionStorage.removeItem('otpUserId');
+
       router.push('/dashboard');
+    } catch (err) {
+      console.error(err);
+      toast.error('Verification failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -22,7 +57,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-primary to-blue-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-2xl">
               QM
@@ -30,45 +64,38 @@ export default function LoginPage() {
           </div>
 
           <h1 className="text-3xl font-bold text-center text-primary mb-2">
-            QMIS Portal
+            Verify OTP
           </h1>
           <p className="text-center text-gray-500 mb-8">
-            Happy Schooling Management System
+            Enter the 6-digit OTP sent to admin
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-           
-            {/* Password */}
+          <form onSubmit={handleVerify} className="space-y-5">
+
+            {/* OTP */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Enter Your 6 Digit Whatsapp OTP code
+                OTP Code
               </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-primary transition-colors"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-500 hover:text-primary transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                className="w-full text-center tracking-widest text-xl px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-primary transition-colors"
+                required
+              />
             </div>
-            
 
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-primary to-blue-700 hover:from-blue-700 hover:to-primary text-white font-bold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-primary to-blue-700 text-white font-bold py-3 rounded-lg transition-all duration-300 disabled:opacity-50"
             >
-             Verify
+              {loading ? 'Verifying...' : 'Verify'}
             </button>
           </form>
         </div>

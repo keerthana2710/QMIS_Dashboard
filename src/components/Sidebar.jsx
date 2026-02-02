@@ -27,7 +27,7 @@ export default function Sidebar() {
     { label: 'AI Chatbot', href: '/chatbot', icon: FileText },
     { label: 'Career Guidance', href: '/career', icon: Settings },
     { label: 'School Activities', href: '/activities', icon: FileText },
-    { label: 'Contact', href: '/contact', icon: Users },
+    { label: 'Contact', href: '/contacts', icon: Users },
     { label: 'Enquiry', href: '/enquiry', icon: FileText },
     { label: 'Profile', href: '/profile', icon: Settings },
   ];
@@ -51,9 +51,8 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static top-0 left-0 h-screen w-64 bg-primary text-white shadow-lg transform transition-transform duration-300 z-40 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:static top-0 left-0 h-screen w-64 bg-primary text-white shadow-lg transform transition-transform duration-300 z-40 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         {/* Logo */}
         <div className="p-6 flex items-center gap-3 border-b border-blue-900">
@@ -75,11 +74,10 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-accent text-white'
-                    : 'text-gray-200 hover:bg-blue-800'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
+                  ? 'bg-accent text-white'
+                  : 'text-gray-200 hover:bg-blue-800'
+                  }`}
               >
                 <Icon size={20} />
                 <span className="text-sm font-medium">{item.label}</span>
