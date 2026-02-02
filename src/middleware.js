@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
+  const origin = req.headers.get("origin");
+
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "https://qmis-dashboard.vercel.app",
+  ];
+
   const res = NextResponse.next();
 
-  res.headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
+  if (origin && allowedOrigins.includes(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+  }
+
   res.headers.set(
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,DELETE,OPTIONS"
