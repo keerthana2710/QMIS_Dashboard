@@ -6,6 +6,7 @@ export function middleware(req) {
   const allowedOrigins = [
     "http://localhost:3000",
     "https://qmis-dashboard.vercel.app",
+    "https://www.qmis.edu.in",
   ];
 
   const res = NextResponse.next();
