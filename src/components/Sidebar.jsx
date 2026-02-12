@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   Globe,
+  MessageCircle,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -30,7 +31,7 @@ export default function Sidebar() {
 
   const websiteItems = [
     { label: 'Google Analytics', href: '/analytics', icon: BarChart3 },
-    { label: 'AI Chatbot', href: '/chatbot', icon: FileText },
+    { label: 'AI Chatbot', href: '/chatbot', icon: MessageCircle },
     { label: 'Career Guidance', href: '/career', icon: Settings },
     { label: 'School Activities', href: '/activities', icon: FileText },
     { label: 'Contact', href: '/contacts', icon: Users },
