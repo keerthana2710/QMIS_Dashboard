@@ -33,7 +33,8 @@ export async function POST(request) {
       leadData,
       children = [],
       userId = null,
-      addedBy = "System"
+      addedBy = "System",
+      leadId = null // Optional for updates
     } = data;
 
     // Verify token
@@ -53,22 +54,6 @@ export async function POST(request) {
         { error: "Phone number verification failed" },
         { status: 401 }
       );
-    }
-
-    // Check for duplicate lead
-    const { data: existingLead } = await supabase
-      .from("leads")
-      .select("id, application_no")
-      .or(`father_phone.ilike.%${leadPhone}%`)
-      .eq("status", "Active")
-      .maybeSingle();
-
-    if (existingLead) {
-      return NextResponse.json({
-        success: false,
-        error: "A lead with this phone number already exists",
-        existingLead: existingLead
-      }, { status: 409 });
     }
 
     // Prepare lead data
@@ -103,44 +88,98 @@ export async function POST(request) {
       whatsapp_verified: true,
       verification_token: verificationToken,
       verified_at: new Date().toISOString(),
-      status: "Active",
-      stage: "New",
-      payment_status: "Pending"
+      status: "Active"
     };
 
-    // Insert lead
-    const { data: newLead, error: leadError } = await supabase
-      .from("leads")
-      .insert(leadPayload)
-      .select(`
-        id,
-        application_no,
-        father_name,
-        father_phone,
-        father_email,
-        stage,
-        status,
-        campaign,
-        source,
-        sub_source,
-        created_at,
-        whatsapp_verified
-      `)
-      .single();
+    let resultLead;
 
-    if (leadError) {
-      console.error("Error creating lead:", leadError);
-      return NextResponse.json(
-        { error: "Failed to create lead" },
-        { status: 500 }
-      );
+    if (leadId) {
+      // Update existing lead
+      const { data: updatedLead, error: updateError } = await supabase
+        .from("leads")
+        .update(leadPayload)
+        .eq("id", leadId)
+        .select(`
+          id,
+          application_no,
+          father_name,
+          father_phone,
+          father_email,
+          stage,
+          status,
+          campaign,
+          source,
+          sub_source,
+          created_at,
+          whatsapp_verified
+        `)
+        .single();
+
+      if (updateError) {
+        console.error("Error updating lead:", updateError);
+        return NextResponse.json(
+          { error: "Failed to update lead" },
+          { status: 500 }
+        );
+      }
+      resultLead = updatedLead;
+
+      // Delete existing children to re-insert
+      await supabase.from("children").delete().eq("lead_id", leadId);
+
+    } else {
+      // Check for duplicate lead (only for new creations)
+      const { data: existingLead } = await supabase
+        .from("leads")
+        .select("id, application_no")
+        .or(`father_phone.ilike.%${leadPhone}%`)
+        .eq("status", "Active")
+        .maybeSingle();
+
+      if (existingLead) {
+        return NextResponse.json({
+          success: false,
+          error: "A lead with this phone number already exists",
+          existingLead: existingLead
+        }, { status: 409 });
+      }
+
+      // Insert new lead
+      leadPayload.stage = "New";
+      const { data: newLead, error: leadError } = await supabase
+        .from("leads")
+        .insert(leadPayload)
+        .select(`
+          id,
+          application_no,
+          father_name,
+          father_phone,
+          father_email,
+          stage,
+          status,
+          campaign,
+          source,
+          sub_source,
+          created_at,
+          whatsapp_verified
+        `)
+        .single();
+
+      if (leadError) {
+        console.error("Error creating lead:", leadError);
+        return NextResponse.json(
+          { error: "Failed to create lead" },
+          { status: 500 }
+        );
+      }
+      resultLead = newLead;
     }
 
     // Insert children if any
     let createdChildren = [];
     if (children.length > 0) {
       const childrenPayload = children.map(child => ({
-        lead_id: newLead.id,
+        lead_id: resultLead.id,
         name: child.name,
         intake_year: child.intakeYear,
         grade: child.grade,
@@ -159,7 +198,6 @@ export async function POST(request) {
 
       if (childrenError) {
         console.error("Error creating children:", childrenError);
-        // Lead was created but children failed
       } else {
         createdChildren = childrenData;
       }
@@ -169,18 +207,18 @@ export async function POST(request) {
     await supabase
       .from("lead_status_history")
       .insert({
-        lead_id: newLead.id,
-        new_status: "New",
+        lead_id: resultLead.id,
+        new_status: resultLead.status,
         changed_by: addedBy,
-        notes: "Lead created with WhatsApp verification"
+        notes: leadId ? "Lead updated with WhatsApp verification" : "Lead created with WhatsApp verification"
       });
 
     return NextResponse.json({
       success: true,
-      message: "Lead created successfully",
-      lead: newLead,
+      message: leadId ? "Lead updated successfully" : "Lead created successfully",
+      lead: resultLead,
       children: createdChildren,
-      applicationNo: newLead.application_no
+      applicationNo: resultLead.application_no
     });
 
   } catch (error) {

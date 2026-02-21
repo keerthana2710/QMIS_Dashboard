@@ -59,6 +59,8 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('loginTime');
     router.push('/login');
   };
 

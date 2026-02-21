@@ -17,6 +17,15 @@ export const sendWhatsAppOTP = async (phoneNumber, otp) => {
     const formattedPhone = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
     const toNumber = formattedPhone.replace(/^0+/, '');
 
+    // Check for required environment variables in production
+    if (process.env.NODE_ENV !== 'development' && (!PHONE_NUMBER_ID || !ACCESS_TOKEN)) {
+      console.error('[WhatsApp] Error: WHATSAPP_PHONE_NUMBER_ID or WHATSAPP_ACCESS_TOKEN is missing in environment variables');
+      return {
+        success: false,
+        error: 'WhatsApp API configuration is missing. Please check server environment variables.'
+      };
+    }
+
     console.log(`[WhatsApp] Sending OTP to: ${toNumber}, OTP: ${otp}`);
 
     // For development, simulate success

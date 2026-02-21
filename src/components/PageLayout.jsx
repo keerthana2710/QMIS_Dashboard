@@ -10,8 +10,31 @@ export default function PageLayout({ children, title }) {
 
   useEffect(() => {
     const auth = localStorage.getItem('authToken');
-    if (!auth) {
+    const loginTime = localStorage.getItem('loginTime');
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+    const logout = () => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('loginTime');
       router.push('/login');
+    };
+
+    if (!auth) {
+      logout();
+      return;
+    }
+
+    if (loginTime) {
+      const timeElapsed = Date.now() - parseInt(loginTime);
+      if (timeElapsed > ONE_DAY_MS) {
+        logout();
+        return;
+      }
+    } else {
+      // If no loginTime exists but authToken does, set it now to start the clock
+      // or logout to be safe. Let's start the clock for existing sessions.
+      localStorage.setItem('loginTime', Date.now().toString());
     }
   }, [router]);
 

@@ -13,7 +13,7 @@ export async function GET(request) {
     // Search
     const search = searchParams.get('search') || '';
 
-    // Filters - support all frontend filters
+    // Filters
     const status = searchParams.get('status');
     const stage = searchParams.get('stage');
     const campaign = searchParams.get('campaign');
@@ -22,7 +22,6 @@ export async function GET(request) {
     const endDate = searchParams.get('endDate');
     const addedBy = searchParams.get('addedBy');
     const verified = searchParams.get('verified');
-    const payment = searchParams.get('payment');
     const project = searchParams.get('project');
     const intakeYear = searchParams.get('intakeYear');
     const grade = searchParams.get('grade');
@@ -34,51 +33,38 @@ export async function GET(request) {
     console.log('API Request Filters:', {
       search, status, stage, campaign, source,
       startDate, endDate, addedBy, verified,
-      payment, project, intakeYear, grade,
+      project, intakeYear, grade,
       page, limit, sortBy, sortOrder
     });
 
-    // Build query
-    let query = supabase
-      .from("leads")
-      .select(`
-        *,
-        children:children(id, name, grade)
-      `, { count: 'exact' });
-
-    // Apply search
-    if (search) {
-      query = query.or(`
-        father_name.ilike.%${search}%,
-        father_phone.ilike.%${search}%,
-        application_no.ilike.%${search}%,
-        father_email.ilike.%${search}%,
-        mother_name.ilike.%${search}%,
-        mother_phone.ilike.%${search}%
-      `);
+    // 1. Build Query
+    // Use !inner for children if filtering by grade or intakeYear to ensure we only get leads with matching children
+    let selectString = '*, children:children(id, name, grade, intake_year)';
+    if (grade || intakeYear) {
+      selectString = '*, children:children!inner(id, name, grade, intake_year)';
     }
 
-    // Apply filters
+    let query = supabase
+      .from("leads")
+      .select(selectString, { count: 'exact' });
+
+    // 2. Apply Filters
+    
+    // Search
+    if (search) {
+      query = query.or(`father_name.ilike.%${search}%,father_phone.ilike.%${search}%,application_no.ilike.%${search}%,father_email.ilike.%${search}%,mother_name.ilike.%${search}%,mother_phone.ilike.%${search}%`);
+    }
+
     if (status) query = query.eq('status', status.toLowerCase());
     if (stage) query = query.eq('stage', stage);
     if (campaign) query = query.eq('campaign', campaign);
     if (source) query = query.eq('source', source);
     if (addedBy) query = query.eq('added_by', addedBy);
-    if (payment) query = query.eq('payment_status', payment);
     if (project) query = query.eq('project', project);
+    
+    // Intake Year checks removed from here as it is on children table
 
-    // Handle intake year - assuming it's stored in lead data
-    if (intakeYear) {
-      // You might need to adjust this based on how intake year is stored
-      query = query.eq('intake_year', intakeYear);
-    }
-
-    // Handle grade filter - filter by children's grade
-    if (grade) {
-      query = query.contains('children', [{ grade: grade }]);
-    }
-
-    // Handle WhatsApp verified filter
+    // WhatsApp verified
     if (verified === 'true') {
       query = query.eq('whatsapp_verified', true);
     } else if (verified === 'false') {
@@ -87,33 +73,31 @@ export async function GET(request) {
 
     // Date range
     if (startDate) {
-      const startDateObj = new Date(startDate);
-      startDateObj.setHours(0, 0, 0, 0);
-      query = query.gte('created_at', startDateObj.toISOString());
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      query = query.gte('created_at', start.toISOString());
     }
     if (endDate) {
-      const endDateObj = new Date(endDate);
-      endDateObj.setHours(23, 59, 59, 999);
-      query = query.lte('created_at', endDateObj.toISOString());
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query = query.lte('created_at', end.toISOString());
     }
 
-    // Apply sorting
-    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
-
-    // Get total count
-    const { data: allData, error: countError } = await query;
-
-    if (countError) {
-      console.error("Count error:", countError);
-      throw countError;
+    // Children Filters (Grade & Intake Year)
+    if (grade) {
+      query = query.eq('children.grade', grade);
+    }
+    if (intakeYear) {
+      query = query.eq('children.intake_year', intakeYear);
     }
 
-    const total = allData ? allData.length : 0;
+    // 3. Apply Sorting & Pagination
+    query = query
+      .order(sortBy, { ascending: sortOrder === 'asc' })
+      .range(offset, offset + limit - 1);
 
-    // Apply pagination
-    query = query.range(offset, offset + limit - 1);
-
-    const { data: leads, error } = await query;
+    // 4. Execute Query (Single Round Trip)
+    const { data: leads, error, count } = await query;
 
     if (error) {
       console.error("Query error:", error);
@@ -125,8 +109,7 @@ export async function GET(request) {
 
     console.log('API Response:', {
       count: leads?.length || 0,
-      total,
-      totalPages: Math.ceil(total / limit),
+      total: count,
       page,
       limit
     });
@@ -137,8 +120,8 @@ export async function GET(request) {
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit)
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
       }
     });
 

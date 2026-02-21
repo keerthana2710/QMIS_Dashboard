@@ -39,6 +39,7 @@ export default function VerifyOtpPage() {
       localStorage.setItem('authToken', data.token);
 
       localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('loginTime', Date.now().toString());
 
       toast.success('Login successful');
 

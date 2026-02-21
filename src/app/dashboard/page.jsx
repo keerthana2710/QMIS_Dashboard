@@ -9,12 +9,7 @@ import Dashboard from '@/components/Dashboard';
 export default function DashboardPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    const auth = localStorage.getItem('authToken');
-    if (!auth) {
-      router.push('/login');
-    }
-  }, [router]);
+  // Authentication is handled by PageLayout component
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">

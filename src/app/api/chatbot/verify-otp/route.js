@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Dummy OTP — always "123456". Ready to swap with Firebase/Twilio later.
-const DUMMY_OTP = '123456';
+const DUMMY_OTP = '321546';
 
 export async function POST(request) {
   try {

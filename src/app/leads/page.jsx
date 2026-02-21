@@ -20,7 +20,6 @@ export default function LeadsPage() {
     intakeYear: '',
     project: '',
     grade: '',
-    payment: '',
     addedBy: '',
     stage: '',
     source: ''
@@ -90,7 +89,6 @@ export default function LeadsPage() {
           motherName: lead.mother_name || '',
           motherEmail: lead.mother_email || '',
           motherPhone: lead.mother_phone || '',
-          payment: lead.payment_status || 'Pending',
           guardianName: lead.guardian_name || '',
           guardianPhone: lead.guardian_phone || '',
           guardianRelationship: lead.guardian_relationship || '',
@@ -169,12 +167,6 @@ export default function LeadsPage() {
   const handleAddLead = () => {
     router.push('/searchlead');
   };
-
-  // Handle edit lead
-  const handleEditLead = (leadId) => {
-    router.push(`/leads/${leadId}/edit`);
-  };
-
   // Format date for input fields
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0];
@@ -306,23 +298,6 @@ export default function LeadsPage() {
               <option value="Grade 10">Grade 10</option>
               <option value="Grade 11">Grade 11</option>
               <option value="Grade 12">Grade 12</option>
-            </select>
-          </div>
-
-          {/* All Payments */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              All Payments
-            </label>
-            <select
-              value={filters.payment}
-              onChange={(e) => handleFilterChange('payment', e.target.value)}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-            >
-              <option value="">All Payments</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
             </select>
           </div>
 
@@ -517,7 +492,6 @@ export default function LeadsPage() {
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Mother Name</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Mother Email</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Mother Phone</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Payment</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Name</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Phone</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200">Guardian Relationship</th>
@@ -547,7 +521,6 @@ export default function LeadsPage() {
                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.motherName}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.motherEmail}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.motherPhone}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.payment}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianName}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianPhone}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{lead.guardianRelationship}</td>
@@ -560,12 +533,12 @@ export default function LeadsPage() {
                             {lead.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 space-x-3">
                           <button
-                            onClick={() => handleEditLead(lead.id)}
-                            className="text-accent hover:text-red-700 font-semibold text-sm"
+                            onClick={() => router.push(`/leads/${lead.id}`)}
+                            className="text-blue-600 hover:text-blue-800 font-semibold text-sm"
                           >
-                            Edit
+                            View
                           </button>
                         </td>
                       </tr>

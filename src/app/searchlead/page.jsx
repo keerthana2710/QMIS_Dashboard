@@ -11,6 +11,7 @@ export default function CreateLead() {
   const [step, setStep] = useState(1); // 1: Search, 2: Parent Details, 3: OTP, 4: Child Details
   const [phoneNumber, setPhoneNumber] = useState('');
   const [existingLead, setExistingLead] = useState(null);
+  const [leadId, setLeadId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [verificationToken, setVerificationToken] = useState(null);
@@ -116,6 +117,7 @@ export default function CreateLead() {
         toast.info('Existing lead found');
       } else {
         setExistingLead(null);
+        setLeadId(null);
         setStep(2);
         // Pre-fill phone number
         setFormData(prev => ({
@@ -126,6 +128,74 @@ export default function CreateLead() {
     } catch (error) {
       console.error('Error checking lead:', error);
       toast.error(error.response?.data?.error || 'Failed to check lead');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Update Existing
+  const handleUpdateExisting = async () => {
+    if (!existingLead) return;
+
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/api/leads/${existingLead.id}`);
+      if (response.data.success) {
+        const fullLead = response.data.lead;
+        
+        // Map backend data back to form structure
+        setFormData({
+          father: {
+            name: fullLead.father_name || '',
+            phone: fullLead.father_phone || '',
+            email: fullLead.father_email || '',
+            occupation: fullLead.father_occupation || '',
+            annualIncome: fullLead.father_annual_income || ''
+          },
+          mother: {
+            name: fullLead.mother_name || '',
+            phone: fullLead.mother_phone || '',
+            email: fullLead.mother_email || '',
+            occupation: fullLead.mother_occupation || '',
+            annualIncome: fullLead.mother_annual_income || ''
+          },
+          guardian: {
+            name: fullLead.guardian_name || '',
+            phone: fullLead.guardian_phone || '',
+            email: fullLead.guardian_email || '',
+            relationship: fullLead.guardian_relationship || '',
+            occupation: fullLead.guardian_occupation || '',
+            annualIncome: fullLead.guardian_annual_income || ''
+          },
+          project: {
+            campaign: fullLead.campaign || '',
+            source: fullLead.source || '',
+            subSource: fullLead.sub_source || ''
+          }
+        });
+
+        // Map children
+        if (fullLead.children && fullLead.children.length > 0) {
+          setChildren(fullLead.children.map(child => ({
+            id: child.id,
+            name: child.name || '',
+            intakeYear: child.intake_year || '2026-2027',
+            grade: child.grade || '',
+            dateOfBirth: child.date_of_birth || '',
+            gender: child.gender || '',
+            address: child.address || '',
+            bloodGroup: child.blood_group || '',
+            previousSchool: child.previous_school || '',
+            reasonForQuitting: child.reason_for_quitting || ''
+          })));
+        }
+
+        setLeadId(fullLead.id);
+        setStep(2);
+      }
+    } catch (error) {
+      console.error('Error fetching full lead details:', error);
+      toast.error('Failed to load lead details');
     } finally {
       setIsLoading(false);
     }
@@ -343,11 +413,12 @@ export default function CreateLead() {
         leadData: formData,
         children: children,
         userId: user?.id || null,
-        addedBy: user?.username || 'Guest'
+        addedBy: user?.username || 'Guest',
+        leadId: leadId // Send leadId if updating
       });
 
       if (response.data.success) {
-        toast.success(`Lead created successfully! Application #: ${response.data.applicationNo}`, { duration: 10000 });
+        toast.success(response.data.message || 'Lead processed successfully!', { duration: 10000 });
 
         // Reset form
         setStep(1);
@@ -465,13 +536,10 @@ export default function CreateLead() {
                 View Lead
               </button>
               <button
-                onClick={() => {
-                  setExistingLead(null);
-                  setStep(2);
-                }}
+                onClick={handleUpdateExisting}
                 className="flex-1 rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition text-sm sm:text-base"
               >
-                Create New
+                Update Existing
               </button>
             </div>
           </div>
@@ -485,7 +553,9 @@ export default function CreateLead() {
     <div className="bg-white rounded-lg sm:rounded-xl shadow-sm sm:shadow-lg p-4 sm:p-6 md:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Sign Up for Admissions</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+            {leadId ? 'Update Admissions Lead' : 'Sign Up for Admissions'}
+          </h1>
           <p className="text-gray-600 text-xs sm:text-sm mt-1">Step 2 of 4 - Parent Details</p>
         </div>
         <button
@@ -1098,7 +1168,7 @@ export default function CreateLead() {
             disabled={isLoading || children.length === 0}
             className="px-6 sm:px-8 py-2 sm:py-3 bg-accent text-white rounded-lg hover:bg-red-700 transition font-semibold disabled:opacity-50 text-sm sm:text-base"
           >
-            {isLoading ? 'Creating Lead...' : 'Create Lead'}
+            {isLoading ? (leadId ? 'Updating Lead...' : 'Creating Lead...') : (leadId ? 'Update Lead' : 'Create Lead')}
           </button>
         </div>
       </div>
