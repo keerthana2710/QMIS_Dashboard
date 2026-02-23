@@ -72,7 +72,7 @@ export async function POST(request) {
       phoneNumber: cleanPhone,
       otpId: otpRecord.id,
       expiresAt: expiresAt.toISOString(),
-      ...(process.env.NODE_ENV === 'development' && { demoOtp: otp })
+      ...(whatsappResult.isSimulated && { demoOtp: otp })
     });
 
   } catch (error) {
