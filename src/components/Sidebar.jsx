@@ -30,7 +30,7 @@ export default function Sidebar() {
   ];
 
   const websiteItems = [
-    { label: 'Google Analytics', href: '/analytics', icon: BarChart3 },
+    // { label: 'Google Analytics', href: '/analytics', icon: BarChart3 },
     { label: 'AI Chatbot', href: '/chatbot', icon: MessageCircle },
     { label: 'Career Guidance', href: '/career', icon: Settings },
     { label: 'School Activities', href: '/activities', icon: FileText },

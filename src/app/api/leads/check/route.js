@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 export async function POST(request) {
   try {
     const { phoneNumber } = await request.json();
+    console.log("Incoming lead check request for phoneNumber:", phoneNumber);
 
     if (!phoneNumber) {
       return NextResponse.json(
@@ -13,6 +14,8 @@ export async function POST(request) {
     }
 
     const cleanPhone = phoneNumber.replace(/\D/g, '');
+    const searchPattern = `%${cleanPhone.split('').join('%')}%`;
+    console.log("Cleaned phone:", cleanPhone, "Search pattern:", searchPattern);
 
     const { data: existingLead, error } = await supabase
       .from("leads")
@@ -28,11 +31,13 @@ export async function POST(request) {
         campaign,
         children:children(id, name, grade)
       `)
-      .or(`father_phone.ilike.%${cleanPhone}%,mother_phone.ilike.%${cleanPhone}%,guardian_phone.ilike.%${cleanPhone}%`)
+      .or(`father_phone.ilike.${searchPattern},mother_phone.ilike.${searchPattern},guardian_phone.ilike.${searchPattern}`)
       .eq("status", "Active")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    console.log("Query result for existingLead:", existingLead ? `Found: ${existingLead.id}` : "Not found");
 
     if (error) {
       console.error("Error checking lead:", error);

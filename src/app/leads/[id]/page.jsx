@@ -120,9 +120,11 @@ export default function ViewLeadPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Qualified': return 'bg-green-100 text-green-800';
-      case 'Interested': return 'bg-blue-100 text-blue-800';
-      case 'New': return 'bg-yellow-100 text-yellow-800';
+      case 'Admitted': return 'bg-green-100 text-green-800';
+      case 'Application Purchased': return 'bg-blue-100 text-blue-800';
+      case 'Enquiry': return 'bg-yellow-100 text-yellow-800';
+      case 'Interview Scheduled': return 'bg-indigo-100 text-indigo-800';
+      case 'Interview Conducted': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -214,10 +216,11 @@ export default function ViewLeadPage() {
                      onChange={(e) => handleInputChange('status', e.target.value)}
                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(editForm.status)} outline-none border-none`}
                    >
-                     <option value="New">New</option>
-                     <option value="Interested">Interested</option>
-                     <option value="Qualified">Qualified</option>
-                     <option value="Active">Active</option>
+                     <option value="Enquiry">Enquiry</option>
+                     <option value="Application Purchased">Application Purchased</option>
+                     <option value="Interview Scheduled">Interview Scheduled</option>
+                     <option value="Interview Conducted">Interview Conducted</option>
+                     <option value="Admitted">Admitted</option>
                    </select>
                  ) : (
                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(lead.status)}`}>

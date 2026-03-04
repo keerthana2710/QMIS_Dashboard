@@ -19,6 +19,17 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import TableToolbar from '@/components/TableToolbar';
+
+const ACT_COLS = [
+  { key: 'sno', label: '#' },
+  { key: 'name', label: 'Name' },
+  { key: 'email', label: 'Email' },
+  { key: 'activityType', label: 'Activity' },
+  { key: 'phone', label: 'Phone' },
+  { key: 'createdAt', label: 'Submitted On' },
+  { key: 'status', label: 'Status' },
+];
 
 // Confirmation Dialog Component
 function DeleteConfirmationDialog({
@@ -77,6 +88,7 @@ function DeleteConfirmationDialog({
 export default function AfterSchoolActivitiesPage() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [visibleCols, setVisibleCols] = useState(ACT_COLS.map((c) => c.key));
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -336,6 +348,17 @@ export default function AfterSchoolActivitiesPage() {
     fetchActivities();
   }, [currentPage]);
 
+  const getData = () =>
+    activities.map((act, idx) => ({
+      sno: (currentPage - 1) * rowsPerPage + idx + 1,
+      name: act.name,
+      email: act.email,
+      activityType: getActivityTypeDisplay(act.activity_type),
+      phone: act.phone,
+      createdAt: formatDate(act.created_at),
+      status: act.status.replace('_', ' ').toUpperCase(),
+    }));
+
   // Get unique activity types for filter
   const uniqueActivityTypes = [
     ...new Set(activities.map((act) => act.activity_type)),
@@ -500,31 +523,32 @@ export default function AfterSchoolActivitiesPage() {
       {/* Activities Table */}
       <div className='bg-white rounded-xl shadow-lg overflow-hidden'>
         {/* Table Controls */}
-        <div className='p-4 border-b flex items-center justify-between'>
+        <div className='p-4 border-b flex flex-col lg:flex-row lg:items-center gap-3'>
           <div className='flex items-center gap-4'>
             <div className='flex items-center gap-2'>
-              <label className='text-sm text-gray-700'>Show:</label>
-              <select
-                value={rowsPerPage}
-                onChange={handleRowsPerPageChange}
-                className='border rounded px-2 py-1 text-sm'
-              >
+              <label className='text-sm text-gray-700 whitespace-nowrap'>Show:</label>
+              <select value={rowsPerPage} onChange={handleRowsPerPageChange}
+                className='border rounded px-2 py-1 text-sm'>
                 <option value='10'>10</option>
                 <option value='25'>25</option>
                 <option value='50'>50</option>
                 <option value='100'>100</option>
               </select>
             </div>
-            <button
-              onClick={fetchActivities}
-              disabled={loading}
-              className='px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:opacity-50'
-            >
+            <button onClick={fetchActivities} disabled={loading}
+              className='px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:opacity-50'>
               Refresh
             </button>
+            <span className='text-sm text-gray-600'>Showing {activities.length} of {totalActivities}</span>
           </div>
-          <div className='text-sm text-gray-600'>
-            Showing {activities.length} of {totalActivities}
+          <div className='lg:ml-auto'>
+            <TableToolbar
+              title="After School Activities"
+              columns={ACT_COLS}
+              visibleCols={visibleCols}
+              onColsChange={setVisibleCols}
+              getData={getData}
+            />
           </div>
         </div>
 

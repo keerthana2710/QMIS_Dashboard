@@ -49,7 +49,8 @@ export default function CreateLead() {
       campaign: '',
       source: '',
       subSource: ''
-    }
+    },
+    status: 'Enquiry'
   });
 
   const [childForm, setChildForm] = useState({
@@ -114,7 +115,7 @@ export default function CreateLead() {
 
       if (response.data.exists) {
         setExistingLead(response.data.lead);
-        toast.info('Existing lead found');
+        toast.success('Existing lead found');
       } else {
         setExistingLead(null);
         setLeadId(null);
@@ -427,7 +428,8 @@ export default function CreateLead() {
           father: { name: '', phone: '', email: '', occupation: '', annualIncome: '' },
           mother: { name: '', phone: '', email: '', occupation: '', annualIncome: '' },
           guardian: { name: '', phone: '', email: '', relationship: '', occupation: '', annualIncome: '' },
-          project: { campaign: '', source: '', subSource: '' }
+          project: { campaign: '', source: '', subSource: '' },
+          status: 'Enquiry'
         });
         setChildren([]);
         resetChildForm();
@@ -534,12 +536,6 @@ export default function CreateLead() {
                 className="flex-1 rounded-lg bg-blue-600 py-2 text-white hover:bg-blue-700 transition text-sm sm:text-base"
               >
                 View Lead
-              </button>
-              <button
-                onClick={handleUpdateExisting}
-                className="flex-1 rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition text-sm sm:text-base"
-              >
-                Update Existing
               </button>
             </div>
           </div>

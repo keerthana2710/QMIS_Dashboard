@@ -129,10 +129,11 @@ export async function POST(request) {
 
     } else {
       // Check for duplicate lead (only for new creations)
+      const searchPattern = `%${leadPhone.split('').join('%')}%`;
       const { data: existingLead } = await supabase
         .from("leads")
         .select("id, application_no")
-        .or(`father_phone.ilike.%${leadPhone}%`)
+        .or(`father_phone.ilike.${searchPattern}`)
         .eq("status", "Active")
         .maybeSingle();
 

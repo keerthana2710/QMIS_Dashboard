@@ -55,7 +55,7 @@ export async function GET(request) {
       query = query.or(`father_name.ilike.%${search}%,father_phone.ilike.%${search}%,application_no.ilike.%${search}%,father_email.ilike.%${search}%,mother_name.ilike.%${search}%,mother_phone.ilike.%${search}%`);
     }
 
-    if (status) query = query.eq('status', status.toLowerCase());
+    if (status) query = query.eq('status', status);
     if (stage) query = query.eq('stage', stage);
     if (campaign) query = query.eq('campaign', campaign);
     if (source) query = query.eq('source', source);
