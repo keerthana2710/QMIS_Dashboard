@@ -1,8 +1,6 @@
 'use client';
 
-'use client';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import PageLayout from '@/components/PageLayout';
 import TableToolbar from '@/components/TableToolbar';
 import { Search, Plus } from 'lucide-react';
@@ -35,7 +33,7 @@ const ALL_COLS = [
   { key: 'status', label: 'Status' },
 ];
 
-export default function LeadsPage() {
+function LeadsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [leads, setLeads] = useState([]);
@@ -357,5 +355,13 @@ export default function LeadsPage() {
         </div>
       </div>
     </PageLayout>
+  );
+}
+
+export default function LeadsPage() {
+  return (
+    <Suspense>
+      <LeadsContent />
+    </Suspense>
   );
 }

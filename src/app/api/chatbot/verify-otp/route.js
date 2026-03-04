@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 
 // Dummy OTP — always "123456". Ready to swap with Firebase/Twilio later.
