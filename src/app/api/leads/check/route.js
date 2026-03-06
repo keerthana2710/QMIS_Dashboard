@@ -33,7 +33,6 @@ export async function POST(request) {
         children:children(id, name, grade)
       `)
       .or(`father_phone.ilike.${searchPattern},mother_phone.ilike.${searchPattern},guardian_phone.ilike.${searchPattern}`)
-      .eq("status", "Active")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

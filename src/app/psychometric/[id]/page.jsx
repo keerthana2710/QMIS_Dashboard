@@ -5,12 +5,20 @@ import { useParams, useRouter } from 'next/navigation';
 import PageLayout from '@/components/PageLayout';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { Printer } from 'lucide-react';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   return new Date(dateStr).toISOString().split('T')[0];
 }
+
+const ratingLabel = (v) => {
+  if (v === 1) return '1 – Low';
+  if (v === 2) return '2 – Moderate';
+  if (v === 3) return '3 – High';
+  return v ?? '—';
+};
 
 function ChildInfoCard({ child, lead }) {
   const name = child?.name || lead?.father_name || '—';
@@ -77,6 +85,399 @@ function TextField({ label, name, value, onChange, helperText, required }) {
         className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
       />
       {helperText && <p className="text-xs text-gray-400 mt-0.5">{helperText}</p>}
+    </div>
+  );
+}
+
+// ─── Print question definitions ───────────────────────────────────────────────
+const EMOTIONAL_QUESTIONS = [
+  {
+    key: 'comfort_security',
+    label: 'Comfort & Security',
+    context: 'Specific observations from drawing, e.g., comfort with familiar settings',
+    options: [
+      { value: 1, desc: 'Feels insecure in new environments' },
+      { value: 2, desc: 'Moderate security' },
+      { value: 3, desc: 'Feels secure and comfortable' },
+    ],
+  },
+  {
+    key: 'expressiveness',
+    label: 'Expressiveness',
+    context: 'E.g., difficulty in conveying feelings or expressing freely',
+    options: [
+      { value: 1, desc: 'Difficulty in expressing thoughts/emotions' },
+      { value: 2, desc: 'Moderate expressiveness' },
+      { value: 3, desc: 'Highly expressive' },
+    ],
+  },
+  {
+    key: 'happiness',
+    label: 'Happiness',
+    context: 'E.g., evidence of sadness or stress',
+    options: [
+      { value: 1, desc: 'Negative emotions' },
+      { value: 2, desc: 'Neutral emotional tone' },
+      { value: 3, desc: 'Exhibits positive emotions' },
+    ],
+  },
+  {
+    key: 'social_interaction',
+    label: 'Social Interaction',
+    context: 'E.g., ability to interact with others comfortably and freely',
+    options: [
+      { value: 1, desc: 'Prefers solitude' },
+      { value: 2, desc: 'Moderate' },
+      { value: 3, desc: 'Enjoys socializing' },
+    ],
+  },
+  {
+    key: 'adaptability',
+    label: 'Adaptability',
+    context: 'Specific observations from the activity',
+    options: [
+      { value: 1, desc: 'Struggles with change' },
+      { value: 2, desc: 'Gradual adaptability' },
+      { value: 3, desc: 'Easily adapts to new environments' },
+    ],
+  },
+];
+
+const COGNITIVE_QUESTIONS = [
+  {
+    key: 'attention_to_detail',
+    label: 'Attention to Detail',
+    context: 'E.g., whether the child completes tasks thoroughly',
+    options: [
+      { value: 1, desc: 'Easily distracted' },
+      { value: 2, desc: 'Moderate' },
+      { value: 3, desc: 'High attention' },
+    ],
+  },
+  {
+    key: 'creative_thinking',
+    label: 'Creative Thinking',
+    context: 'E.g., drawn objects, use of colors, inventiveness',
+    options: [
+      { value: 1, desc: 'Limited creative thinking' },
+      { value: 2, desc: 'Shows creativity' },
+      { value: 3, desc: 'Highly creative' },
+    ],
+  },
+  {
+    key: 'problem_solving',
+    label: 'Problem-Solving',
+    context: 'E.g., logical progression in their drawing or task completion',
+    options: [
+      { value: 1, desc: 'Struggles with problem-solving' },
+      { value: 2, desc: 'Adequate' },
+      { value: 3, desc: 'Excellent problem-solving' },
+    ],
+  },
+  {
+    key: 'memory',
+    label: 'Memory',
+    context: 'E.g., recollection of concepts and color names, connection to prior knowledge',
+    options: [
+      { value: 1, desc: 'Weak memory' },
+      { value: 2, desc: 'Adequate' },
+      { value: 3, desc: 'Strong memory' },
+    ],
+  },
+];
+
+const ACADEMIC_SECTIONS = [
+  {
+    title: 'Gross Motor Skills',
+    context: 'Observation: Taking the kid around',
+    questions: [
+      { key: 'walk_on_floor', label: 'Walk on the Floor', type: 'rating' },
+      { key: 'able_to_jump', label: 'Able to Jump', type: 'rating' },
+      { key: 'climbs_stairs', label: 'Climbs the Stairs', type: 'rating' },
+    ],
+  },
+  {
+    title: 'Fine Motor Skills',
+    context: 'Activity: Coloring and writing',
+    questions: [
+      { key: 'pincer_grip', label: 'Pincer Grip', type: 'text' },
+      { key: 'coloring', label: 'Coloring', type: 'text' },
+    ],
+  },
+  {
+    title: 'Eye-Hand Co-ordination',
+    context: '',
+    questions: [
+      { key: 'string_boards', label: 'String Boards', type: 'text' },
+    ],
+  },
+  {
+    title: 'Language Skills',
+    context: 'Interaction with the admission team staff / KG teacher',
+    questions: [
+      { key: 'communication', label: 'Able to communicate in one or two sentences', type: 'text' },
+    ],
+  },
+  {
+    title: 'Socio-Emotional Skills',
+    context: 'Interaction with the admission team staff / KG teacher',
+    questions: [
+      { key: 'comfortable_in_new_environment', label: 'Comfortable in new environment', type: 'text' },
+    ],
+  },
+  {
+    title: 'Writing Skills',
+    context: 'Activity: Coloring and Writing',
+    questions: [
+      { key: 'identification', label: 'Identification', type: 'text' },
+      { key: 'sequencing', label: 'Sequencing', type: 'text' },
+    ],
+  },
+];
+
+const RATING_OPTIONS = [
+  { value: 1, desc: 'Low' },
+  { value: 2, desc: 'Moderate' },
+  { value: 3, desc: 'High' },
+];
+
+// Sub-components for the print view
+function PrintRatingQuestion({ num, label, context, options, selected }) {
+  return (
+    <div style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
+      <div style={{ fontWeight: '600', fontSize: '12px', marginBottom: '2px' }}>
+        {num}. {label}
+      </div>
+      {context && (
+        <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic', marginBottom: '6px' }}>
+          {context}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: '12px' }}>
+        {options.map((opt) => {
+          const isSelected = selected === opt.value;
+          return (
+            <div
+              key={opt.value}
+              style={{
+                border: isSelected ? '2px solid #1d4ed8' : '1px solid #d1d5db',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                backgroundColor: isSelected ? '#dbeafe' : '#f9fafb',
+                flex: 1,
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontWeight: isSelected ? '700' : '400', fontSize: '14px', color: isSelected ? '#1e3a8a' : '#374151' }}>
+                {opt.value}
+              </div>
+              <div style={{ fontSize: '10px', color: isSelected ? '#1d4ed8' : '#6b7280', marginTop: '2px' }}>
+                {opt.desc}
+              </div>
+              {isSelected && (
+                <div style={{ fontSize: '9px', color: '#1d4ed8', fontWeight: '700', marginTop: '2px' }}>
+                  ✓ SELECTED
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {selected === undefined || selected === null || selected === '' ? (
+        <div style={{ fontSize: '10px', color: '#ef4444', marginTop: '4px' }}>Not answered</div>
+      ) : null}
+    </div>
+  );
+}
+
+function PrintTextField({ num, label, context, value }) {
+  return (
+    <div style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
+      <div style={{ fontWeight: '600', fontSize: '12px', marginBottom: '2px' }}>
+        {num}. {label}
+      </div>
+      {context && (
+        <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic', marginBottom: '6px' }}>
+          {context}
+        </div>
+      )}
+      <div style={{
+        border: '1px solid #d1d5db',
+        borderRadius: '6px',
+        padding: '8px 12px',
+        backgroundColor: value ? '#f0fdf4' : '#fafafa',
+        fontSize: '12px',
+        color: value ? '#166534' : '#9ca3af',
+        minHeight: '32px',
+      }}>
+        {value || 'Not answered'}
+      </div>
+    </div>
+  );
+}
+
+// ─── Print View ───────────────────────────────────────────────────────────────
+function PrintView({ test }) {
+  const child = test?.child;
+  const lead = test?.lead;
+  const emotional = Array.isArray(test?.emotional_analysis) ? test.emotional_analysis[0] : test?.emotional_analysis;
+  const cognitive = Array.isArray(test?.cognitive_skills) ? test.cognitive_skills[0] : test?.cognitive_skills;
+  const academic = Array.isArray(test?.academic_assessment) ? test.academic_assessment[0] : test?.academic_assessment;
+
+  let qNum = 0;
+
+  return (
+    <div style={{ fontFamily: 'Georgia, serif', color: '#111', fontSize: '12px', padding: '24px' }}>
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', borderBottom: '3px solid #1e3a8a', paddingBottom: '12px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '20px', fontWeight: '700', letterSpacing: '0.5px', color: '#1e3a8a' }}>
+          QMIS — Psychometric Assessment Report
+        </div>
+        <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>
+          Generated on {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+          &nbsp;·&nbsp; Application No: {test?.application_no || '—'}
+        </div>
+      </div>
+
+      {/* Student & Assessment Info */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+        <div>
+          <div style={{ fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#374151', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px', marginBottom: '8px' }}>
+            Student Details
+          </div>
+          {[
+            ['Name', child?.name || lead?.father_name || '—'],
+            ['Grade', child?.grade || test?.grade || '—'],
+            ['Date of Birth', formatDate(child?.date_of_birth)],
+            ['Gender', child?.gender || '—'],
+            ['Previous School', child?.previous_school || '—'],
+            ['Reason for Quitting', child?.reason_for_quitting || '—'],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', gap: '8px', fontSize: '11px', marginBottom: '4px' }}>
+              <span style={{ color: '#6b7280', minWidth: '130px' }}>{label}:</span>
+              <span style={{ fontWeight: '500' }}>{value}</span>
+            </div>
+          ))}
+        </div>
+        <div>
+          <div style={{ fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#374151', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px', marginBottom: '8px' }}>
+            Assessment Info
+          </div>
+          {[
+            ['Counselor', test?.counselor_name || '—'],
+            ['Scheduled', test?.test_scheduled_date ? new Date(test.test_scheduled_date).toLocaleString('en-IN') : '—'],
+            ['Test Status', test?.test_conducted ? '✓ Conducted' : 'Pending'],
+            ['Stage', test?.stage || '—'],
+            ['Lead Status', lead?.status || '—'],
+            ['Parent Phone', lead?.father_phone || '—'],
+            ['Parent Email', lead?.father_email || '—'],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', gap: '8px', fontSize: '11px', marginBottom: '4px' }}>
+              <span style={{ color: '#6b7280', minWidth: '110px' }}>{label}:</span>
+              <span style={{ fontWeight: '500' }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Section 1: Emotional Analysis ── */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ backgroundColor: '#1e3a8a', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontWeight: '700', fontSize: '13px', marginBottom: '14px' }}>
+          Section 1 — Emotional Analysis
+        </div>
+        {emotional ? (
+          EMOTIONAL_QUESTIONS.map((q) => {
+            qNum++;
+            return (
+              <PrintRatingQuestion
+                key={q.key}
+                num={qNum}
+                label={q.label}
+                context={q.context}
+                options={q.options}
+                selected={emotional[q.key]}
+              />
+            );
+          })
+        ) : (
+          <div style={{ color: '#ef4444', fontStyle: 'italic', fontSize: '11px' }}>This section has not been assessed yet.</div>
+        )}
+      </div>
+
+      {/* ── Section 2: Cognitive Skills ── */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ backgroundColor: '#1e3a8a', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontWeight: '700', fontSize: '13px', marginBottom: '14px' }}>
+          Section 2 — Cognitive Skills
+        </div>
+        {cognitive ? (
+          COGNITIVE_QUESTIONS.map((q) => {
+            qNum++;
+            return (
+              <PrintRatingQuestion
+                key={q.key}
+                num={qNum}
+                label={q.label}
+                context={q.context}
+                options={q.options}
+                selected={cognitive[q.key]}
+              />
+            );
+          })
+        ) : (
+          <div style={{ color: '#ef4444', fontStyle: 'italic', fontSize: '11px' }}>This section has not been assessed yet.</div>
+        )}
+      </div>
+
+      {/* ── Section 3: Academic Level Assessment ── */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ backgroundColor: '#1e3a8a', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontWeight: '700', fontSize: '13px', marginBottom: '14px' }}>
+          Section 3 — Academic Level Assessment
+        </div>
+        {academic ? (
+          ACADEMIC_SECTIONS.map((section) => (
+            <div key={section.title} style={{ marginBottom: '16px' }}>
+              <div style={{ fontWeight: '700', fontSize: '11px', color: '#1d4ed8', borderBottom: '1px solid #bfdbfe', paddingBottom: '4px', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {section.title}
+                {section.context && <span style={{ fontWeight: '400', fontStyle: 'italic', marginLeft: '8px', color: '#6b7280', textTransform: 'none', letterSpacing: 'normal' }}>— {section.context}</span>}
+              </div>
+              {section.questions.map((q) => {
+                qNum++;
+                return q.type === 'rating' ? (
+                  <PrintRatingQuestion
+                    key={q.key}
+                    num={qNum}
+                    label={q.label}
+                    context=""
+                    options={RATING_OPTIONS}
+                    selected={academic[q.key]}
+                  />
+                ) : (
+                  <PrintTextField
+                    key={q.key}
+                    num={qNum}
+                    label={q.label}
+                    context=""
+                    value={academic[q.key]}
+                  />
+                );
+              })}
+            </div>
+          ))
+        ) : (
+          <div style={{ color: '#ef4444', fontStyle: 'italic', fontSize: '11px' }}>This section has not been assessed yet.</div>
+        )}
+      </div>
+
+      {/* Signature Strip */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '32px', marginTop: '32px', paddingTop: '16px', borderTop: '2px solid #e5e7eb', textAlign: 'center', fontSize: '11px', color: '#6b7280' }}>
+        {['Counselor Signature', 'Parent / Guardian Signature', 'Date'].map((label) => (
+          <div key={label}>
+            <div style={{ borderBottom: '1px solid #9ca3af', marginBottom: '4px', paddingBottom: '24px' }}></div>
+            {label}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -296,20 +697,14 @@ function CognitiveSkillsStep({ testId, existing, child, lead, onNext, onBack }) 
 // ─── Step 3: Academic Level Assessment ───────────────────────────────────────
 function AcademicAssessmentStep({ testId, existing, child, lead, onBack, onComplete }) {
   const [form, setForm] = useState({
-    // Gross Motor
     walk_on_floor: existing?.walk_on_floor ?? '',
     able_to_jump: existing?.able_to_jump ?? '',
     climbs_stairs: existing?.climbs_stairs ?? '',
-    // Fine Motor
     pincer_grip: existing?.pincer_grip ?? '',
     coloring: existing?.coloring ?? '',
-    // Eye-Hand
     string_boards: existing?.string_boards ?? '',
-    // Language
     communication: existing?.communication ?? '',
-    // Socio-Emotional
     comfortable_in_new_environment: existing?.comfortable_in_new_environment ?? '',
-    // Writing
     identification: existing?.identification ?? '',
     sequencing: existing?.sequencing ?? '',
   });
@@ -335,102 +730,27 @@ function AcademicAssessmentStep({ testId, existing, child, lead, onBack, onCompl
       <SectionCard title="Academic Level Assessment">
         <ChildInfoCard child={child} lead={lead} />
 
-        {/* Gross Motor Skills */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3">Gross Motor Skills</h3>
-        <RatingField
-          label="Walk on the Floor"
-          name="walk_on_floor"
-          value={form.walk_on_floor}
-          onChange={handleChange}
-          required
-          helperLines={['Taking the kid around']}
-        />
-        <RatingField
-          label="Able to Jump"
-          name="able_to_jump"
-          value={form.able_to_jump}
-          onChange={handleChange}
-          required
-          helperLines={['Taking the kid around']}
-        />
-        <RatingField
-          label="Climbs the Stairs"
-          name="climbs_stairs"
-          value={form.climbs_stairs}
-          onChange={handleChange}
-          required
-          helperLines={['Taking the kid around']}
-        />
+        <RatingField label="Walk on the Floor" name="walk_on_floor" value={form.walk_on_floor} onChange={handleChange} required helperLines={['Taking the kid around']} />
+        <RatingField label="Able to Jump" name="able_to_jump" value={form.able_to_jump} onChange={handleChange} required helperLines={['Taking the kid around']} />
+        <RatingField label="Climbs the Stairs" name="climbs_stairs" value={form.climbs_stairs} onChange={handleChange} required helperLines={['Taking the kid around']} />
 
-        {/* Fine Motor Skills */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3 mt-4">Fine Motor Skills</h3>
-        <TextField
-          label="Pincer grip"
-          name="pincer_grip"
-          value={form.pincer_grip}
-          onChange={handleChange}
-          required
-          helperText="Coloring and writing"
-        />
-        <TextField
-          label="Coloring"
-          name="coloring"
-          value={form.coloring}
-          onChange={handleChange}
-          required
-          helperText="Coloring and writing"
-        />
+        <TextField label="Pincer grip" name="pincer_grip" value={form.pincer_grip} onChange={handleChange} required helperText="Coloring and writing" />
+        <TextField label="Coloring" name="coloring" value={form.coloring} onChange={handleChange} required helperText="Coloring and writing" />
 
-        {/* Eye-Hand Co-ordination */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3 mt-4">Eye Hand co-ordination</h3>
-        <TextField
-          label="String Boards"
-          name="string_boards"
-          value={form.string_boards}
-          onChange={handleChange}
-          required
-        />
+        <TextField label="String Boards" name="string_boards" value={form.string_boards} onChange={handleChange} required />
 
-        {/* Language Skills */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3 mt-4">Language Skills</h3>
-        <TextField
-          label="Able to communicate in one or two sentences"
-          name="communication"
-          value={form.communication}
-          onChange={handleChange}
-          required
-          helperText="Interaction with the admission team staff/KG teacher"
-        />
+        <TextField label="Able to communicate in one or two sentences" name="communication" value={form.communication} onChange={handleChange} required helperText="Interaction with the admission team staff/KG teacher" />
 
-        {/* Socio-Emotional Skills */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3 mt-4">Socio economical Skills</h3>
-        <TextField
-          label="Comfortable in new environment"
-          name="comfortable_in_new_environment"
-          value={form.comfortable_in_new_environment}
-          onChange={handleChange}
-          required
-          helperText="Interaction with the admission team staff/KG teacher"
-        />
+        <TextField label="Comfortable in new environment" name="comfortable_in_new_environment" value={form.comfortable_in_new_environment} onChange={handleChange} required helperText="Interaction with the admission team staff/KG teacher" />
 
-        {/* Writing Skills */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3 mt-4">Writting Skills</h3>
-        <TextField
-          label="Identification"
-          name="identification"
-          value={form.identification}
-          onChange={handleChange}
-          required
-          helperText="Coloring and Writing"
-        />
-        <TextField
-          label="Sequencing"
-          name="sequencing"
-          value={form.sequencing}
-          onChange={handleChange}
-          required
-          helperText="Coloring and Writing"
-        />
+        <TextField label="Identification" name="identification" value={form.identification} onChange={handleChange} required helperText="Coloring and Writing" />
+        <TextField label="Sequencing" name="sequencing" value={form.sequencing} onChange={handleChange} required helperText="Coloring and Writing" />
       </SectionCard>
 
       <div className="flex gap-3">
@@ -620,10 +940,8 @@ export default function PsychometricTestPage() {
         if (res.data.success) {
           const t = res.data.test;
           setTest(t);
-          // Supabase returns sub-tables as arrays; normalise to first element
           const emotional = Array.isArray(t.emotional_analysis) ? t.emotional_analysis[0] : t.emotional_analysis;
           const cognitive = Array.isArray(t.cognitive_skills) ? t.cognitive_skills[0] : t.cognitive_skills;
-          // Resume at furthest completed step
           if (cognitive?.id) setStep(3);
           else if (emotional?.id) setStep(2);
           else setStep(1);
@@ -653,59 +971,99 @@ export default function PsychometricTestPage() {
   }
 
   return (
-    <PageLayout title="Psychometric Assessment">
-      <div className="max-w-3xl mx-auto">
-        {/* Back link */}
-        <button
-          onClick={() => router.push('/psychometric')}
-          className="text-sm text-blue-600 hover:underline mb-4 inline-block"
-        >
-          ← Back to Psychometric Tests
-        </button>
+    <>
+      {/* Print CSS — hides everything on the page, shows only the print container */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          #psychometric-print-view,
+          #psychometric-print-view * { visibility: visible !important; }
+          #psychometric-print-view {
+            display: block !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+        }
+      `}</style>
 
-        {/* Counselor Section */}
-        <CounselorSection
-          testId={id}
-          test={test}
-          onUpdated={(patch) => setTest(t => ({ ...t, ...patch }))}
-        />
-
-        {/* Stepper Header */}
-        <StepperHeader currentStep={step} />
-
-        {/* White card — matches screenshot design */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          {step === 1 && (
-            <EmotionalAnalysisStep
-              testId={id}
-              existing={test?.emotional_analysis?.[0] || test?.emotional_analysis || null}
-              child={test?.child}
-              lead={test?.lead}
-              onNext={() => setStep(2)}
-            />
-          )}
-          {step === 2 && (
-            <CognitiveSkillsStep
-              testId={id}
-              existing={test?.cognitive_skills?.[0] || test?.cognitive_skills || null}
-              child={test?.child}
-              lead={test?.lead}
-              onNext={() => setStep(3)}
-              onBack={() => setStep(1)}
-            />
-          )}
-          {step === 3 && (
-            <AcademicAssessmentStep
-              testId={id}
-              existing={test?.academic_assessment?.[0] || test?.academic_assessment || null}
-              child={test?.child}
-              lead={test?.lead}
-              onBack={() => setStep(2)}
-              onComplete={handleComplete}
-            />
-          )}
-        </div>
+      {/* Print-only container — off-screen on screen, fully visible when printing */}
+      <div
+        id="psychometric-print-view"
+        style={{ position: 'fixed', left: '-9999px', top: 0, width: '210mm' }}
+      >
+        {test && <PrintView test={test} />}
       </div>
-    </PageLayout>
+
+      {/* Screen layout inside PageLayout */}
+      <PageLayout title="Psychometric Assessment">
+        <div className="max-w-3xl mx-auto">
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.push('/psychometric')}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              ← Back to Psychometric Tests
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+            >
+              <Printer size={15} /> Print / Save PDF
+            </button>
+          </div>
+
+          {/* Counselor Section */}
+          <CounselorSection
+            testId={id}
+            test={test}
+            onUpdated={(patch) => setTest(t => ({ ...t, ...patch }))}
+          />
+
+          {/* Stepper Header */}
+          <StepperHeader currentStep={step} />
+
+          {/* Step Content */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            {step === 1 && (
+              <EmotionalAnalysisStep
+                testId={id}
+                existing={test?.emotional_analysis?.[0] || test?.emotional_analysis || null}
+                child={test?.child}
+                lead={test?.lead}
+                onNext={() => setStep(2)}
+              />
+            )}
+            {step === 2 && (
+              <CognitiveSkillsStep
+                testId={id}
+                existing={test?.cognitive_skills?.[0] || test?.cognitive_skills || null}
+                child={test?.child}
+                lead={test?.lead}
+                onNext={() => setStep(3)}
+                onBack={() => setStep(1)}
+              />
+            )}
+            {step === 3 && (
+              <AcademicAssessmentStep
+                testId={id}
+                existing={test?.academic_assessment?.[0] || test?.academic_assessment || null}
+                child={test?.child}
+                lead={test?.lead}
+                onBack={() => setStep(2)}
+                onComplete={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      </PageLayout>
+    </>
   );
 }

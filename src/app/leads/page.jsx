@@ -106,7 +106,7 @@ function LeadsContent() {
           project: lead.project || '',
           addedBy: lead.added_by || '',
           whatsappNo: lead.whatsapp_no || lead.father_phone || '',
-          status: lead.status || 'New',
+          status: (!lead.status || lead.status === 'Active') ? 'Enquiry' : lead.status,
         }));
         setLeads(transformed);
         setTotalPages(response.data.pagination?.totalPages || 1);

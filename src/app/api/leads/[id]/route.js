@@ -39,6 +39,10 @@ export async function GET(request, { params }) {
         lead.lead_status_history.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
+    // Normalize legacy 'Active' status to 'Enquiry'
+    if (!lead.status || lead.status === 'Active') {
+      lead.status = 'Enquiry';
+    }
 
     return NextResponse.json({
       success: true,
@@ -84,8 +88,8 @@ export async function PATCH(request, { params }) {
       campaign: leadData.campaign,
       source: leadData.source,
       sub_source: leadData.sub_source,
-      project: leadData.campaign,
-      
+      project: leadData.project,
+
       status: leadData.status,
       stage: leadData.stage
     };
@@ -141,6 +145,11 @@ export async function PATCH(request, { params }) {
         changed_by: addedBy,
         notes: "Lead updated via Dashboard inline edit"
       });
+
+    // Normalize legacy 'Active' status in PATCH response
+    if (!updatedLead.status || updatedLead.status === 'Active') {
+      updatedLead.status = 'Enquiry';
+    }
 
     return NextResponse.json({
       success: true,

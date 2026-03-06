@@ -56,7 +56,14 @@ export async function GET(request) {
       query = query.or(`father_name.ilike.%${search}%,father_phone.ilike.%${search}%,application_no.ilike.%${search}%,father_email.ilike.%${search}%,mother_name.ilike.%${search}%,mother_phone.ilike.%${search}%`);
     }
 
-    if (status) query = query.eq('status', status);
+    if (status) {
+      // Treat legacy 'Active' status the same as 'Enquiry'
+      if (status === 'Enquiry') {
+        query = query.or('status.eq.Enquiry,status.eq.Active');
+      } else {
+        query = query.eq('status', status);
+      }
+    }
     if (stage) query = query.eq('stage', stage);
     if (campaign) query = query.eq('campaign', campaign);
     if (source) query = query.eq('source', source);
@@ -115,9 +122,15 @@ export async function GET(request) {
       limit
     });
 
+    // Normalize legacy 'Active' status to 'Enquiry' so all consumers see consistent values
+    const normalizedLeads = (leads || []).map(lead => ({
+      ...lead,
+      status: (!lead.status || lead.status === 'Active') ? 'Enquiry' : lead.status,
+    }));
+
     return NextResponse.json({
       success: true,
-      leads: leads || [],
+      leads: normalizedLeads,
       pagination: {
         page,
         limit,

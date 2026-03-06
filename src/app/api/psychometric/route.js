@@ -33,7 +33,7 @@ export async function GET(request) {
       `,
         { count: 'exact' }
       )
-      .in('status', ['Interview Scheduled', 'Interview Conducted'])
+      .in('status', ['Interview Scheduled', 'Interview Conducted', 'Admitted'])
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

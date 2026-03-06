@@ -89,7 +89,7 @@ export async function POST(request) {
       whatsapp_verified: true,
       verification_token: verificationToken,
       verified_at: new Date().toISOString(),
-      status: "Active"
+      status: 'Enquiry'
     };
 
     let resultLead;
@@ -135,7 +135,6 @@ export async function POST(request) {
         .from("leads")
         .select("id, application_no")
         .or(`father_phone.ilike.${searchPattern}`)
-        .eq("status", "Active")
         .maybeSingle();
 
       if (existingLead) {
