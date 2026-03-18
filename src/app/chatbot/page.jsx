@@ -107,7 +107,7 @@ export default function ChatbotManagementPage() {
   // ========== CONVERSATION DETAIL VIEW ==========
   if (selectedUser) {
     return (
-      <PageLayout title="Chatbot Management">
+      <PageLayout title="Chatbot Management" page="chatbot">
         <div className="max-w-4xl mx-auto">
           {/* Back button + user info */}
           <div className="flex items-center gap-4 mb-6">
@@ -196,7 +196,7 @@ export default function ChatbotManagementPage() {
 
   // ========== USERS LIST VIEW ==========
   return (
-    <PageLayout title="Chatbot Management">
+    <PageLayout title="Chatbot Management" page="chatbot">
       <div className="space-y-6">
         {/* Filters bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">

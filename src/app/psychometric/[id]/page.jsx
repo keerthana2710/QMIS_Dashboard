@@ -962,7 +962,7 @@ export default function PsychometricTestPage() {
 
   if (loading) {
     return (
-      <PageLayout title="Psychometric Assessment">
+      <PageLayout title="Psychometric Assessment" page="psychometric">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent" />
         </div>
@@ -1001,7 +1001,7 @@ export default function PsychometricTestPage() {
       </div>
 
       {/* Screen layout inside PageLayout */}
-      <PageLayout title="Psychometric Assessment">
+      <PageLayout title="Psychometric Assessment" page="psychometric">
         <div className="max-w-3xl mx-auto">
           {/* Top bar */}
           <div className="flex items-center justify-between mb-4">

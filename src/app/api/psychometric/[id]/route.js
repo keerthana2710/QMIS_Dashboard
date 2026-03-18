@@ -61,3 +61,23 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// DELETE /api/psychometric/[id] — delete test and all sub-assessments
+export async function DELETE(request, { params }) {
+  const { id } = params;
+  try {
+    // Delete sub-assessments first
+    await supabase.from('emotional_analysis').delete().eq('test_id', id);
+    await supabase.from('cognitive_skills').delete().eq('test_id', id);
+    await supabase.from('academic_assessment').delete().eq('test_id', id);
+
+    const { error } = await supabase.from('psychometric_tests').delete().eq('id', id);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, message: 'Psychometric test deleted successfully' });
+  } catch (err) {
+    console.error('Delete psychometric error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

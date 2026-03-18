@@ -1193,7 +1193,7 @@ export default function CreateLead() {
   );
 
   return (
-    <PageLayout title="Create Lead">
+    <PageLayout title="Create Lead" page="leads">
       <div className="max-w-6xl mx-auto py-3 sm:py-4 md:py-6 lg:py-8 px-2 sm:px-3 md:px-4">
         {renderProgressSteps()}
 

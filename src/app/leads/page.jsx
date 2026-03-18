@@ -3,10 +3,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import PageLayout from '@/components/PageLayout';
 import TableToolbar from '@/components/TableToolbar';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Trash2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { usePermission } from '@/hooks/usePermission';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const ALL_COLS = [
   { key: 'sno', label: 'Sno' },
@@ -34,8 +36,29 @@ const ALL_COLS = [
 ];
 
 function LeadsContent() {
+  const { canWrite, canDelete } = usePermission('leads');
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, lead: null });
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick  = (lead) => setDeleteDialog({ open: true, lead });
+  const handleDeleteCancel = () => setDeleteDialog({ open: false, lead: null });
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.lead) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/api/leads/${deleteDialog.lead.id}`);
+      toast.success('Lead deleted successfully');
+      setDeleteDialog({ open: false, lead: null });
+      fetchLeads();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete lead');
+    } finally {
+      setDeleting(false);
+    }
+  };
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [visibleCols, setVisibleCols] = useState(ALL_COLS.map((c) => c.key));
@@ -142,16 +165,26 @@ function LeadsContent() {
   const vis = (key) => visibleCols.includes(key);
 
   return (
-    <PageLayout title="Leads Management">
+    <PageLayout title="Leads Management" page="leads">
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+        title="Delete Lead"
+        message={`Are you sure you want to delete the lead for "${deleteDialog.lead?.fatherName || deleteDialog.lead?.applicationNo}"? All children records and status history will also be removed permanently.`}
+      />
       {/* Filters */}
       <div className="w-full bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold text-gray-800">Leads by Source</h2>
-          <button onClick={() => router.push('/searchlead')}
-            className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-red-700 transition-colors font-medium" disabled={loading}>
-            <Plus size={18} />
-            {loading ? 'Loading...' : 'Add Lead'}
-          </button>
+          {canWrite && (
+            <button onClick={() => router.push('/searchlead')}
+              className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-red-700 transition-colors font-medium" disabled={loading}>
+              <Plus size={18} />
+              {loading ? 'Loading...' : 'Add Lead'}
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-8 gap-4">
@@ -331,8 +364,19 @@ function LeadsContent() {
                             </td>
                           )}
                           <td className="px-6 py-4">
-                            <button onClick={() => router.push(`/leads/${lead.id}`)}
-                              className="text-blue-600 hover:text-blue-800 font-semibold text-sm">View</button>
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => router.push(`/leads/${lead.id}`)}
+                                className="text-blue-600 hover:text-blue-800 font-semibold text-sm">View</button>
+                              {canDelete && (
+                                <button
+                                  onClick={() => handleDeleteClick(lead)}
+                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                  title="Delete lead"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))

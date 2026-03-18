@@ -6,6 +6,9 @@ import TableToolbar from '@/components/TableToolbar';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { Trash2 } from 'lucide-react';
+import { usePermission } from '@/hooks/usePermission';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const PSY_COLS = [
   { key: 'sno', label: 'Sno' },
@@ -51,10 +54,31 @@ async function getOrCreateAndNavigate(row, router, setNavigatingId) {
 }
 
 export default function PsychometricPage() {
+  const { canDelete } = usePermission('psychometric');
   const router = useRouter();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [navigatingId, setNavigatingId] = useState(null);
+
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, test: null });
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick  = (test) => setDeleteDialog({ open: true, test });
+  const handleDeleteCancel = () => setDeleteDialog({ open: false, test: null });
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.test) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/api/psychometric/${deleteDialog.test.test_id}`);
+      toast.success('Psychometric test deleted successfully');
+      setDeleteDialog({ open: false, test: null });
+      fetchTests();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete test');
+    } finally {
+      setDeleting(false);
+    }
+  };
   const [visibleCols, setVisibleCols] = useState(PSY_COLS.map((c) => c.key));
 
   // Filters
@@ -139,7 +163,15 @@ export default function PsychometricPage() {
   }
 
   return (
-    <PageLayout title="Psychometric Tests">
+    <PageLayout title="Psychometric Tests" page="psychometric">
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+        title="Delete Psychometric Test"
+        message={`Are you sure you want to delete the test for "${deleteDialog.test?.name}"? All assessment data will be permanently removed.`}
+      />
       <div className="space-y-6">
 
         {/* Filters Card */}
@@ -264,13 +296,24 @@ export default function PsychometricPage() {
                           {visibleCols.includes('test_conducted') && <td className="px-6 py-4">{getTestConductedBadge(t.test_conducted)}</td>}
                           {visibleCols.includes('counselor_name') && <td className="px-6 py-4 text-sm text-gray-600">{t.counselor_name || '—'}</td>}
                           <td className="px-6 py-4">
-                            <button
-                              onClick={() => getOrCreateAndNavigate(t, router, setNavigatingId)}
-                              disabled={navigatingId === (t.lead_id + (t.child_id || ''))}
-                              className="text-accent hover:text-red-700 font-semibold text-sm disabled:opacity-50"
-                            >
-                              {navigatingId === (t.lead_id + (t.child_id || '')) ? 'Opening...' : 'View'}
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => getOrCreateAndNavigate(t, router, setNavigatingId)}
+                                disabled={navigatingId === (t.lead_id + (t.child_id || ''))}
+                                className="text-accent hover:text-red-700 font-semibold text-sm disabled:opacity-50"
+                              >
+                                {navigatingId === (t.lead_id + (t.child_id || '')) ? 'Opening...' : 'View'}
+                              </button>
+                              {canDelete && t.test_id && (
+                                <button
+                                  onClick={() => handleDeleteClick(t)}
+                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                  title="Delete test"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))

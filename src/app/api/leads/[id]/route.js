@@ -165,3 +165,22 @@ export async function PATCH(request, { params }) {
     );
   }
 }
+
+// DELETE /api/leads/[id] — delete lead and all related records
+export async function DELETE(request, { params }) {
+  const { id } = params;
+  try {
+    // Delete related records first (cascade)
+    await supabase.from('lead_status_history').delete().eq('lead_id', id);
+    await supabase.from('children').delete().eq('lead_id', id);
+
+    const { error } = await supabase.from('leads').delete().eq('id', id);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, message: 'Lead deleted successfully' });
+  } catch (err) {
+    console.error('Delete lead error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

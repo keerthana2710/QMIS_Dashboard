@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
 import TableToolbar from '@/components/TableToolbar';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { usePermission } from '@/hooks/usePermission';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const ALL_COLS = [
   { key: 'sno', label: 'Sno' },
@@ -22,8 +24,29 @@ const formatDate = (d) =>
   new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
 export default function ContactsPage() {
+  const { canDelete } = usePermission('contacts');
   const router = useRouter();
   const [contacts, setContacts] = useState([]);
+
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, contact: null });
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick  = (contact) => setDeleteDialog({ open: true, contact });
+  const handleDeleteCancel = () => setDeleteDialog({ open: false, contact: null });
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.contact) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/api/contacts/${deleteDialog.contact.id}`);
+      toast.success('Contact deleted successfully');
+      setDeleteDialog({ open: false, contact: null });
+      fetchContacts();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete contact');
+    } finally {
+      setDeleting(false);
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [visibleCols, setVisibleCols] = useState(ALL_COLS.map((c) => c.key));
 
@@ -82,7 +105,15 @@ export default function ContactsPage() {
   const vis = (key) => visibleCols.includes(key);
 
   return (
-    <PageLayout title="Contacts Management">
+    <PageLayout title="Contacts Management" page="contacts">
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+        title="Delete Contact"
+        message={`Are you sure you want to delete the contact "${deleteDialog.contact?.name}"? This action cannot be undone.`}
+      />
       {/* Filters */}
       <div className="w-full bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex justify-between items-center mb-6">
@@ -190,10 +221,21 @@ export default function ContactsPage() {
                           {vis('message') && <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{contact.message}</td>}
                           {vis('createdAt') && <td className="px-6 py-4 text-sm text-gray-600">{formatDate(contact.created_at)}</td>}
                           <td className="px-6 py-4">
-                            <button onClick={() => router.push(`/contacts/${contact.id}`)}
-                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium text-sm">
-                              <Eye size={16} /> View
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => router.push(`/contacts/${contact.id}`)}
+                                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                <Eye size={16} /> View
+                              </button>
+                              {canDelete && (
+                                <button
+                                  onClick={() => handleDeleteClick(contact)}
+                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                  title="Delete contact"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))

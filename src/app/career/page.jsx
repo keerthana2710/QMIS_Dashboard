@@ -2,17 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
-import { Search, Eye, Download, FileText, User, Mail, Phone, Briefcase, Calendar, GraduationCap, MapPin, Filter, X } from 'lucide-react';
+import { Search, Eye, Download, FileText, User, Mail, Phone, Briefcase, Calendar, GraduationCap, MapPin, Filter, X, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { usePermission } from '@/hooks/usePermission';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 export default function CareersPage() {
+  const { canDelete } = usePermission('career');
   const router = useRouter();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedApp, setSelectedApp] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, app: null });
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick  = (app) => setDeleteDialog({ open: true, app });
+  const handleDeleteCancel = () => setDeleteDialog({ open: false, app: null });
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.app) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/api/careers/${deleteDialog.app.id}`);
+      toast.success('Application deleted successfully');
+      setDeleteDialog({ open: false, app: null });
+      fetchApplications();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete application');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -156,7 +179,15 @@ export default function CareersPage() {
   const uniquePositions = [...new Set(applications.map(app => app.position))].filter(Boolean);
 
   return (
-    <PageLayout title="Career Applications">
+    <PageLayout title="Career Applications" page="career">
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+        title="Delete Application"
+        message={`Are you sure you want to delete the application from "${deleteDialog.app?.name}"? The resume file will also be removed permanently.`}
+      />
       {/* Filters Section */}
       <div className="w-full bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex justify-between items-center mb-4">
@@ -415,6 +446,15 @@ export default function CareersPage() {
                           >
                             <Eye size={18} />
                           </button>
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDeleteClick(app)}
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                              title="Delete application"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

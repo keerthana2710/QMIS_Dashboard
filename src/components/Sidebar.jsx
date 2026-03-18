@@ -16,30 +16,56 @@ import {
   ChevronUp,
   Globe,
   MessageCircle,
+  ShieldCheck,
 } from 'lucide-react';
+import { SUPER_ADMIN_ROLE } from '@/config/pages';
+import { useAllPermissions } from '@/hooks/useAllPermissions';
+
+function canSee(pageKey, permsMap) {
+  if (!pageKey) return true;
+  if (permsMap === null) return true;             // still loading — show all at reduced opacity
+  if (permsMap === 'FULL_ACCESS') return true;    // SUPER_ADMIN
+  return permsMap?.[pageKey]?.canRead ?? false;
+}
 
 export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
+  const [isOpen, setIsOpen]   = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const router   = useRouter();
   const pathname = usePathname();
+  const { permsMap, loading } = useAllPermissions();
 
-  const mainMenuItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Leads', href: '/leads', icon: Users },
-    { label: 'Psychometric Test', href: '/psychometric', icon: FileText },
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try { setUserRole(JSON.parse(userStr)?.role ?? null); } catch { /* ignore */ }
+    }
+  }, []);
+
+  const allMainMenuItems = [
+    { label: 'Dashboard',         href: '/dashboard',    icon: LayoutDashboard },
+    { label: 'Leads',             href: '/leads',        icon: Users,           pageKey: 'leads' },
+    { label: 'Psychometric Test', href: '/psychometric', icon: FileText,        pageKey: 'psychometric' },
   ];
 
-  const websiteItems = [
-    // { label: 'Google Analytics', href: '/analytics', icon: BarChart3 },
-    { label: 'AI Chatbot', href: '/chatbot', icon: MessageCircle },
-    { label: 'Career Guidance', href: '/career', icon: Settings },
-    { label: 'School Activities', href: '/activities', icon: FileText },
-    { label: 'Contact', href: '/contacts', icon: Users },
-    { label: 'Enquiry', href: '/enquiry', icon: FileText },
+  const allWebsiteItems = [
+    // { label: 'Google Analytics', href: '/analytics', icon: BarChart3, pageKey: 'analytics' },
+    { label: 'AI Chatbot',        href: '/chatbot',    icon: MessageCircle, pageKey: 'chatbot' },
+    { label: 'Career Guidance',   href: '/career',     icon: Settings,      pageKey: 'career' },
+    { label: 'School Activities', href: '/activities', icon: FileText,      pageKey: 'activities' },
+    { label: 'Contact',           href: '/contacts',   icon: Users,         pageKey: 'contacts' },
+    { label: 'Enquiry',           href: '/enquiry',    icon: FileText,      pageKey: 'enquiry' },
   ];
+
+  const mainMenuItems    = allMainMenuItems.filter((item) => canSee(item.pageKey, permsMap));
+  const websiteItems     = allWebsiteItems.filter((item) => canSee(item.pageKey, permsMap));
 
   const bottomMenuItems = [
     { label: 'Profile', href: '/profile', icon: Settings },
+  ];
+
+  const superAdminItems = [
+    { label: 'Permissions', href: '/super-admin/permissions', icon: ShieldCheck },
   ];
 
   // Check if any website child is active
@@ -60,7 +86,6 @@ export default function Sidebar() {
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    localStorage.removeItem('loginTime');
     router.push('/login');
   };
 
@@ -92,7 +117,7 @@ export default function Sidebar() {
         </div>
 
         {/* Menu */}
-        <nav className='mt-6 px-4 space-y-2 flex-1 overflow-y-auto'>
+        <nav className={`mt-6 px-4 space-y-2 flex-1 overflow-y-auto transition-opacity ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           {/* Main Menu Items */}
           {mainMenuItems.map((item) => {
             const Icon = item.icon;
@@ -113,8 +138,8 @@ export default function Sidebar() {
             );
           })}
 
-          {/* Collapsible Website Section */}
-          <div className='mt-2'>
+          {/* Collapsible Website Section — hidden when user has no permitted website items */}
+          {websiteItems.length > 0 && <div className='mt-2'>
             <button
               onClick={() => setIsWebsiteOpen(!isWebsiteOpen)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
@@ -157,7 +182,7 @@ export default function Sidebar() {
                 })}
               </div>
             )}
-          </div>
+          </div>}
 
           {/* Bottom Menu Items */}
           {bottomMenuItems.map((item) => {
@@ -178,6 +203,33 @@ export default function Sidebar() {
               </Link>
             );
           })}
+
+          {/* Super Admin Section — only shown to SUPER_ADMIN role */}
+          {userRole === SUPER_ADMIN_ROLE && (
+            <div className='mt-4 pt-4 border-t border-blue-900'>
+              <p className='px-4 text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2'>
+                Super Admin
+              </p>
+              {superAdminItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-accent text-white'
+                        : 'text-gray-200 hover:bg-blue-800'
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span className='text-sm font-medium'>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         {/* Footer */}

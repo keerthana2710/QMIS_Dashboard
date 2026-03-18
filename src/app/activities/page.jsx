@@ -15,11 +15,12 @@ import {
   X,
   Activity,
   MessageSquare,
-  AlertTriangle,
 } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import TableToolbar from '@/components/TableToolbar';
+import { usePermission } from '@/hooks/usePermission';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const ACT_COLS = [
   { key: 'sno', label: '#' },
@@ -31,61 +32,9 @@ const ACT_COLS = [
   { key: 'status', label: 'Status' },
 ];
 
-// Confirmation Dialog Component
-function DeleteConfirmationDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  message,
-}) {
-  if (!isOpen) return null;
-
-  return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
-      <div className='bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all'>
-        <div className='p-6'>
-          {/* Icon */}
-          <div className='flex justify-center mb-4'>
-            <div className='h-16 w-16 bg-red-100 rounded-full flex items-center justify-center'>
-              <AlertTriangle className='h-8 w-8 text-red-600' />
-            </div>
-          </div>
-
-          {/* Title */}
-          <h2 className='text-xl font-bold text-gray-900 text-center mb-2'>
-            {title || 'Confirm Delete'}
-          </h2>
-
-          {/* Message */}
-          <p className='text-gray-600 text-center mb-6'>
-            {message ||
-              'Are you sure you want to delete this item? This action cannot be undone.'}
-          </p>
-
-          {/* Action Buttons */}
-          <div className='flex gap-3'>
-            <button
-              onClick={onClose}
-              className='flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors'
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              className='flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors flex items-center justify-center gap-2'
-            >
-              <Trash2 size={18} />
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function AfterSchoolActivitiesPage() {
+  const { canWrite, canDelete } = usePermission('activities');
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [visibleCols, setVisibleCols] = useState(ACT_COLS.map((c) => c.key));
@@ -365,12 +314,13 @@ export default function AfterSchoolActivitiesPage() {
   ].filter(Boolean);
 
   return (
-    <PageLayout title='After School Activities Enquiries'>
+    <PageLayout title='After School Activities Enquiries' page='activities'>
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
+        loading={deleting}
         title='Delete Activity Enquiry'
         message={`Are you sure you want to delete the enquiry from "${itemToDelete?.name}"? This action cannot be undone and all associated data will be permanently removed.`}
       />
@@ -649,21 +599,25 @@ export default function AfterSchoolActivitiesPage() {
                           >
                             <Eye size={18} />
                           </button>
-                          <button
-                            onClick={() => handleEdit(activity)}
-                            className='p-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors'
-                            title='Edit'
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(activity)}
-                            className='p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                            title='Delete'
-                            disabled={deleting}
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          {canWrite && (
+                            <button
+                              onClick={() => handleEdit(activity)}
+                              className='p-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors'
+                              title='Edit'
+                            >
+                              <Edit size={18} />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDeleteClick(activity)}
+                              className='p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                              title='Delete'
+                              disabled={deleting}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

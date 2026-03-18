@@ -40,3 +40,18 @@ export async function GET(request, { params }) {
     );
   }
 }
+
+// DELETE /api/contacts/[id]
+export async function DELETE(request, { params }) {
+  const { id } = await params;
+  try {
+    const { error } = await supabase.from('contacts').delete().eq('id', id);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, message: 'Contact deleted successfully' });
+  } catch (err) {
+    console.error('Delete contact error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

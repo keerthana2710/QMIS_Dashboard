@@ -6,6 +6,7 @@ import PageLayout from '@/components/PageLayout';
 import { ArrowLeft, Clock, Edit2, Save, X, Plus, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { usePermission } from '@/hooks/usePermission';
 
 const gradeOptions = [
   'Pre KG', 'KG 1', 'KG 2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4',
@@ -98,6 +99,7 @@ function SubSection({ title, children }) {
 }
 
 export default function ViewLeadPage() {
+  const { canWrite } = usePermission('leads');
   const { id } = useParams();
   const router = useRouter();
   const [lead, setLead] = useState(null);
@@ -214,7 +216,7 @@ export default function ViewLeadPage() {
   const d = isEditing ? editForm : lead;
 
   return (
-    <PageLayout title="Lead Details">
+    <PageLayout title="Lead Details" page="leads">
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-6">
         <button
@@ -224,34 +226,36 @@ export default function ViewLeadPage() {
           <ArrowLeft size={16} /> Back to Leads
         </button>
 
-        <div className="flex gap-2">
-          {isEditing ? (
-            <>
+        {canWrite && (
+          <div className="flex gap-2">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleEditToggle}
+                  disabled={isSaving}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Save size={15} />
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </>
+            ) : (
               <button
                 onClick={handleEditToggle}
-                disabled={isSaving}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition disabled:opacity-50"
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
               >
-                Cancel
+                <Edit2 size={15} /> Edit Lead
               </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50"
-              >
-                <Save size={15} />
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={handleEditToggle}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
-            >
-              <Edit2 size={15} /> Edit Lead
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Header Card */}

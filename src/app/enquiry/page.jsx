@@ -40,7 +40,7 @@ export default function EnquiryPage() {
   };
 
   return (
-    <PageLayout title="Enquiries">
+    <PageLayout title="Enquiries" page="enquiry">
       <div className="space-y-6">
         <div className="flex justify-end">
           <button className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-red-700 transition-colors">
