@@ -1,36 +1,36 @@
 import { NextResponse } from "next/server";
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000,http://localhost:3002")
+  .split(",")
+  .map((o) => o.trim());
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+};
+
 export function middleware(req) {
-  const origin = req.headers.get("origin");
+  const origin = req.headers.get("origin") || "";
+  const isAllowed = allowedOrigins.includes(origin);
 
-  const allowedOrigins = [
-    "http://localhost:3000",
-    "https://qmis-dashboard.vercel.app",
-    "https://www.qmis.edu.in",
-  ];
-
-  const res = NextResponse.next();
-
-  if (origin && allowedOrigins.includes(origin)) {
-    res.headers.set("Access-Control-Allow-Origin", origin);
-  }
-
-  res.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
-  );
-  res.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-
+  // Preflight
   if (req.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 204,
-      headers: res.headers,
+      headers: {
+        ...CORS_HEADERS,
+        "Access-Control-Allow-Origin": isAllowed ? origin : "",
+      },
     });
   }
 
+  // Normal requests
+  const res = NextResponse.next();
+  if (isAllowed) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+  }
+  Object.entries(CORS_HEADERS).forEach(([k, v]) => res.headers.set(k, v));
   return res;
 }
 
