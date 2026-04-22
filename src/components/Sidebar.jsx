@@ -29,9 +29,9 @@ function canSee(pageKey, permsMap) {
 }
 
 export default function Sidebar() {
-  const [isOpen, setIsOpen]   = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
   const { permsMap, loading } = useAllPermissions();
 
@@ -43,22 +43,22 @@ export default function Sidebar() {
   }, []);
 
   const allMainMenuItems = [
-    { label: 'Dashboard',         href: '/dashboard',    icon: LayoutDashboard },
-    { label: 'Leads',             href: '/leads',        icon: Users,           pageKey: 'leads' },
-    { label: 'Psychometric Test', href: '/psychometric', icon: FileText,        pageKey: 'psychometric' },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Leads', href: '/leads', icon: Users, pageKey: 'leads' },
+    { label: 'Psychometric Test', href: '/psychometric', icon: FileText, pageKey: 'psychometric' },
   ];
 
   const allWebsiteItems = [
     // { label: 'Google Analytics', href: '/analytics', icon: BarChart3, pageKey: 'analytics' },
-    { label: 'AI Chatbot',        href: '/chatbot',    icon: MessageCircle, pageKey: 'chatbot' },
-    { label: 'Career Guidance',   href: '/career',     icon: Settings,      pageKey: 'career' },
-    { label: 'School Activities', href: '/activities', icon: FileText,      pageKey: 'activities' },
-    { label: 'Contact',           href: '/contacts',   icon: Users,         pageKey: 'contacts' },
-    { label: 'Enquiry',           href: '/enquiry',    icon: FileText,      pageKey: 'enquiry' },
+    { label: 'AI Chatbot', href: '/chatbot', icon: MessageCircle, pageKey: 'chatbot' },
+    { label: 'Career Guidance', href: '/career', icon: Settings, pageKey: 'career' },
+    { label: 'School Activities', href: '/activities', icon: FileText, pageKey: 'activities' },
+    { label: 'Contact', href: '/contacts', icon: Users, pageKey: 'contacts' },
+    // { label: 'Enquiry',           href: '/enquiry',    icon: FileText,      pageKey: 'enquiry' },
   ];
 
-  const mainMenuItems    = allMainMenuItems.filter((item) => canSee(item.pageKey, permsMap));
-  const websiteItems     = allWebsiteItems.filter((item) => canSee(item.pageKey, permsMap));
+  const mainMenuItems = allMainMenuItems.filter((item) => canSee(item.pageKey, permsMap));
+  const websiteItems = allWebsiteItems.filter((item) => canSee(item.pageKey, permsMap));
 
   const bottomMenuItems = [
     { label: 'Profile', href: '/profile', icon: Settings },
@@ -101,9 +101,8 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static top-0 left-0 h-screen w-64 bg-primary text-white shadow-lg transform transition-transform duration-300 z-40 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:static top-0 left-0 h-screen w-64 bg-primary text-white shadow-lg transform transition-transform duration-300 z-40 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         {/* Logo */}
         <div className='p-6 flex items-center gap-3 border-b border-blue-900'>
@@ -126,11 +125,10 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-accent text-white'
-                    : 'text-gray-200 hover:bg-blue-800'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
+                  ? 'bg-accent text-white'
+                  : 'text-gray-200 hover:bg-blue-800'
+                  }`}
               >
                 <Icon size={20} />
                 <span className='text-sm font-medium'>{item.label}</span>
@@ -142,11 +140,10 @@ export default function Sidebar() {
           {websiteItems.length > 0 && <div className='mt-2'>
             <button
               onClick={() => setIsWebsiteOpen(!isWebsiteOpen)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                isWebsiteActive
-                  ? 'bg-accent text-white'
-                  : 'text-gray-200 hover:bg-blue-800'
-              }`}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isWebsiteActive
+                ? 'bg-accent text-white'
+                : 'text-gray-200 hover:bg-blue-800'
+                }`}
             >
               <div className='flex items-center gap-3'>
                 <Globe size={20} />
@@ -169,11 +166,10 @@ export default function Sidebar() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-accent text-white'
-                          : 'text-gray-300 hover:bg-blue-800 hover:text-white'
-                      }`}
+                      className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${isActive(item.href)
+                        ? 'bg-accent text-white'
+                        : 'text-gray-300 hover:bg-blue-800 hover:text-white'
+                        }`}
                     >
                       <Icon size={18} />
                       <span className='text-sm'>{item.label}</span>
@@ -192,11 +188,10 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-accent text-white'
-                    : 'text-gray-200 hover:bg-blue-800'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
+                  ? 'bg-accent text-white'
+                  : 'text-gray-200 hover:bg-blue-800'
+                  }`}
               >
                 <Icon size={20} />
                 <span className='text-sm font-medium'>{item.label}</span>
@@ -217,11 +212,10 @@ export default function Sidebar() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive(item.href)
-                        ? 'bg-accent text-white'
-                        : 'text-gray-200 hover:bg-blue-800'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
+                      ? 'bg-accent text-white'
+                      : 'text-gray-200 hover:bg-blue-800'
+                      }`}
                   >
                     <Icon size={20} />
                     <span className='text-sm font-medium'>{item.label}</span>

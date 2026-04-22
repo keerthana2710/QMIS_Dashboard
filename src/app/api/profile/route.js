@@ -93,8 +93,7 @@ export async function PUT(request) {
         username: updatedUser.username,
         role: updatedUser.role,
       },
-      JWT_SECRET,
-      { expiresIn: "1d" }
+      JWT_SECRET
     );
 
     return NextResponse.json(

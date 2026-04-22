@@ -58,8 +58,7 @@ export async function POST(req) {
         email: user.email,
         role: user.role,
       },
-      JWT_SECRET,
-      { expiresIn: "1d" }
+      JWT_SECRET
     );
 
     return NextResponse.json(
