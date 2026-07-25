@@ -228,7 +228,7 @@ export default function Dashboard() {
           </button>
           <button onClick={handleExportPDF} disabled={loading || !data}
             className="bg-blue-900 hover:bg-blue-800 disabled:opacity-50 text-white text-sm font-medium px-5 py-2 rounded">
-            Export to PDF Doc
+            Export to PDF
           </button>
           <button onClick={clearFilters} disabled={loading}
             className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium px-5 py-2 rounded">
